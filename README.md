@@ -1,4 +1,4 @@
-# Excellence Website
+# Template Website
 
 A modern SaaS template built with Next.js 15, Tailwind CSS v4, Shadcn UI v2, Upstash Redis, and Supabase.
 
