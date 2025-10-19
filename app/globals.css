@@ -2,7 +2,7 @@
 @import 'tw-animate-css';
 
 :root {
-  --background: hsl(0 0% 100%);
+  --background: #F7F8FF;
   --foreground: hsl(210 25% 7.8431%);
   --card: hsl(180 6.6667% 97.0588%);
   --card-foreground: hsl(210 25% 7.8431%);
@@ -57,7 +57,7 @@
 }
 
 .dark {
-  --background: hsl(0 0% 0%);
+  --background: #F7F8FF;
   --foreground: hsl(200 6.6667% 91.1765%);
   --card: hsl(228 9.8039% 10%);
   --card-foreground: hsl(0 0% 85.0980%);
