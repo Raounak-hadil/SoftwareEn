@@ -2,7 +2,7 @@
 
 A modern SaaS template built with Next.js 15, Tailwind CSS v4, Shadcn UI v2, Upstash Redis, and Supabase.
 
-## Features
+## Features: 
 
 - ⚡️ **Next.js 15** - The React framework for production
 - 💨 **Tailwind CSS v4** - A utility-first CSS framework

@@ -12,11 +12,11 @@ export async function GET(request: NextRequest) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
 
     if (!error) {
-      // Successful authentication - redirect to the next URL or dashboard
+      // Successful authentication  - redirect to the next URL or dashboard
       const redirectUrl = new URL(next, request.url);
       return NextResponse.redirect(redirectUrl);
     }
-  }
+  }//fermer
 
   // If there's an error or no code, redirect to login with error
   const loginUrl = new URL('/login', request.url);
