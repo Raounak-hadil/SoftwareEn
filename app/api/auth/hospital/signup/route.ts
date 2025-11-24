@@ -1,54 +1,41 @@
 import { NextResponse } from "next/server";
-import { supabase } from "../../../../../supabase/supabaseClient";
-import bcrypt from "bcrypt";
+import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs";
+import { cookies } from "next/headers";
 
 export async function POST(req: Request) {
-  try {
-    const body = await req.json();
-    const {
-      hosname,
-      email,
-      year_of_est,
-      type,
-      phone_num,
-      country,
-      city,
-      state,
-      password,
-      license_file
-    } = body;
+  const supabase = createRouteHandlerClient({ cookies });
+  const body = await req.json();
+  const { email, password, hosname, phone_num, city, state, year_of_est, type, license_file } = body;
 
-    if (!email || !password) {
-      return NextResponse.json({ error: "Email & password required" }, { status: 400 });
-    }
+  // Create Supabase Auth user
+  const { data: authData, error: authError } = await supabase.auth.signUp({
+    email,
+    password
+  });
 
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    // Insert into database
-    const { data, error } = await supabase
-      .from("hospitals")
-      .insert({
-        hosname,
-        email,
-        year_of_est,
-        type,
-        phone_num,
-        country,
-        city,
-        state,
-        license_file,
-        password: hashedPassword,
-      })
-      .select("*")
-      .single();
-
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 400 });
-    }
-
-    return NextResponse.json({ hospital: data });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  if (authError) {
+    return NextResponse.json({ error: authError.message }, { status: 400 });
   }
+
+  // Insert hospital profile using auth_id
+  const { error } = await supabase
+  .from("hospitals")
+  .insert({
+    auth_id: authData.user!.id,
+    email,
+    hosname,
+    phone_num,
+    city,
+    state,
+    year_of_est,
+    type,
+    license_file
+  });
+
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 400 });
+  }
+
+  return NextResponse.json({ success: true, user: authData.user });
 }
