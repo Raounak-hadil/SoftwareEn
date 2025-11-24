@@ -1,47 +1,40 @@
 import { NextResponse } from "next/server";
-import { supabase } from "../../../../../supabase/supabaseClient";
-import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
+import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs";
+import { cookies } from "next/headers";
 
 export async function POST(req: Request) {
+  const supabase = createRouteHandlerClient({ cookies });
+
   try {
     const { email, password } = await req.json();
 
-    // Fetch doctor
-    const { data, error } = await supabase
+    if (!email || !password) {
+      return NextResponse.json({ error: "Email & password required" }, { status: 400 });
+    }
+
+    // Supabase Auth login
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password
+    });
+
+    if (error) {
+      return NextResponse.json({ error: error.message, details: error }, { status: 401 });
+    }
+
+    // Fetch doctor profile using auth_id
+    const { data: doctorData, error: dbError } = await supabase
       .from("doctors")
       .select("*")
-      .eq("email", email)
+      .eq("auth_id", data.user?.id)
       .single();
 
-    if (error || !data) {
-      return NextResponse.json(
-        { error: "Doctor not found" },
-        { status: 404 }
-      );
+    if (dbError) {
+      return NextResponse.json({ error: dbError.message }, { status: 404 });
     }
 
-    // Compare passwords
-    const valid = await bcrypt.compare(password, data.password);
-    if (!valid) {
-      return NextResponse.json(
-        { error: "Invalid password" },
-        { status: 401 }
-      );
-    }
-
-    // Generate JWT
-    const token = jwt.sign(
-      { id: data.id, role: "doctor" },
-      process.env.JWT_SECRET!,
-      { expiresIn: "1d" }
-    );
-
-    return NextResponse.json({ token, doctor: data });
+    return NextResponse.json({ success: true, user: data.user, doctor: doctorData });
   } catch (err: any) {
-    return NextResponse.json(
-      { error: err.message },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
