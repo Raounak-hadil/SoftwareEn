@@ -17,6 +17,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(redirectUrl);
     }
   }//fermer
+  //comment
 
   // If there's an error or no code, redirect to login with error
   const loginUrl = new URL('/login', request.url);
