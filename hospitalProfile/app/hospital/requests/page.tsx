@@ -81,6 +81,40 @@ const mockForeverDonators = [
   },
 ]
 
+// DoctorRequests and HospitalRequests interfaces and data
+interface DoctorRequest {
+  id: number;
+  hospital_id: number;
+  doctor_id: number;
+  urgency: string;
+  blood_type: string;
+  quantity: number;
+  request_date: string;
+  status: string;
+  seen: boolean;
+}
+interface HospitalRequest {
+  id: number;
+  hospital_from_id: number;
+  hospital_to_id: number;
+  email: string;
+  blood_type: string;
+  priority: string;
+  units_needed: number;
+  notes: string;
+  status: string;
+}
+
+const mockDoctorRequests: DoctorRequest[] = [
+  { id: 1, hospital_id: 1, doctor_id: 1, urgency: 'Urgent', blood_type: 'O+', quantity: 2, request_date: '2024-09-15', status: 'Completed', seen: true },
+  { id: 2, hospital_id: 1, doctor_id: 2, urgency: 'Normal', blood_type: 'A+', quantity: 3, request_date: '2024-05-28', status: 'Processing', seen: false },
+  { id: 3, hospital_id: 1, doctor_id: 3, urgency: 'Emergency', blood_type: 'B-', quantity: 1, request_date: '2024-11-23', status: 'Rejected', seen: true },
+];
+const mockHospitalRequests: HospitalRequest[] = [
+  { id: 1, hospital_from_id: 2, hospital_to_id: 1, email: 'abc@hospital.com', blood_type: 'O-', priority: 'Urgent', units_needed: 5, notes: 'Fast delivery needed', status: 'On Hold' },
+  { id: 2, hospital_from_id: 1, hospital_to_id: 3, email: 'xyz@hospital.com', blood_type: 'AB+', priority: 'Normal', units_needed: 4, notes: '-', status: 'In Transit' },
+];
+
 interface Donator {
   id: number
   name: string
@@ -91,7 +125,8 @@ interface Donator {
 
 export default function RequestsPage() {
   const [activeTab, setActiveTab] = useState<'requests' | 'forever-donators' | 'other-requests'>('requests')
-  const [requests] = useState(mockRequests)
+  const [doctorRequests, setDoctorRequests] = useState<DoctorRequest[]>(mockDoctorRequests)
+  const [hospitalRequests, setHospitalRequests] = useState<HospitalRequest[]>(mockHospitalRequests)
   const [foreverDonators] = useState<Donator[]>(mockForeverDonators)
   const [showRequestModal, setShowRequestModal] = useState(false)
   const [showDonatorModal, setShowDonatorModal] = useState(false)
@@ -113,9 +148,18 @@ export default function RequestsPage() {
     setShowDonatorModal(true)
   }
 
-  const doctorRequests = requests.filter((r) => r.from === 'CHU Mustapha' && r.for === 'CHU Mustapha')
-  const otherHospitalRequests = requests.filter((r) => r.from !== 'CHU Mustapha' && r.for === 'CHU Mustapha')
-  const outgoingRequests = requests.filter((r) => r.from === 'CHU Mustapha' && r.for !== 'CHU Mustapha')
+  const handleApproveDoctor = (id: number) => {
+    setDoctorRequests(dr => dr.map(r => r.id === id ? { ...r, status: 'Approved' } : r))
+  }
+  const handleRejectDoctor = (id: number) => {
+    setDoctorRequests(dr => dr.map(r => r.id === id ? { ...r, status: 'Rejected' } : r))
+  }
+  const handleApproveHospital = (id: number) => {
+    setHospitalRequests(hr => hr.map(r => r.id === id ? { ...r, status: 'Approved' } : r))
+  }
+  const handleRejectHospital = (id: number) => {
+    setHospitalRequests(hr => hr.map(r => r.id === id ? { ...r, status: 'Rejected' } : r))
+  }
 
   return (
     <HospitalLayout>
@@ -152,45 +196,38 @@ export default function RequestsPage() {
           <table className="table">
             <thead>
               <tr>
-                <th>From</th>
-                <th>For</th>
-                <th>Requested By</th>
-                <th>Date</th>
-                <th>Type</th>
+                <th>Hospital ID</th>
+                <th>Doctor ID</th>
+                <th>Urgency</th>
+                <th>Blood Type</th>
                 <th>Quantity</th>
+                <th>Request Date</th>
                 <th>Status</th>
+                <th>Seen</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
               {doctorRequests.map((request) => (
                 <tr key={request.id}>
-                  <td>{request.from}</td>
-                  <td>{request.for}</td>
-                  <td>{request.requestedBy}</td>
-                  <td>{request.date}</td>
-                  <td>{request.type}</td>
+                  <td>{request.hospital_id}</td>
+                  <td>{request.doctor_id}</td>
+                  <td>{request.urgency}</td>
+                  <td>{request.blood_type}</td>
                   <td>{request.quantity}</td>
-                  <td>
-                    <span className={`status-badge ${getStatusClass(request.status)}`}>
-                      {request.status}
-                    </span>
-                  </td>
+                  <td>{request.request_date}</td>
+                  <td>{request.status}</td>
+                  <td>{request.seen ? 'Yes' : 'No'}</td>
                   <td>
                     <div className="action-buttons">
-                      {request.status === 'Processing' && (
-                        <>
-                          <button className="btn btn-primary btn-small">Approve</button>
-                          <button className="btn btn-secondary btn-small">Reject</button>
-                        </>
-                      )}
+                      <button className="btn btn-primary btn-small" onClick={() => handleApproveDoctor(request.id)}>Approve</button>
+                      <button className="btn btn-secondary btn-small" onClick={() => handleRejectDoctor(request.id)}>Reject</button>
                     </div>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
-          <div className="summary-text">Showing {doctorRequests.length} requests</div>
         </div>
       )}
 
@@ -199,43 +236,38 @@ export default function RequestsPage() {
           <table className="table">
             <thead>
               <tr>
-                <th>From</th>
-                <th>Requested By</th>
-                <th>Date</th>
-                <th>Type</th>
-                <th>Quantity</th>
+                <th>Hospital From ID</th>
+                <th>Hospital To ID</th>
+                <th>Email</th>
+                <th>Blood Type</th>
+                <th>Priority</th>
+                <th>Units Needed</th>
+                <th>Notes</th>
                 <th>Status</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
-              {otherHospitalRequests.map((request) => (
+              {hospitalRequests.map((request) => (
                 <tr key={request.id}>
-                  <td>{request.from}</td>
-                  <td>{request.requestedBy}</td>
-                  <td>{request.date}</td>
-                  <td>{request.type}</td>
-                  <td>{request.quantity}</td>
-                  <td>
-                    <span className={`status-badge ${getStatusClass(request.status)}`}>
-                      {request.status}
-                    </span>
-                  </td>
+                  <td>{request.hospital_from_id}</td>
+                  <td>{request.hospital_to_id}</td>
+                  <td>{request.email}</td>
+                  <td>{request.blood_type}</td>
+                  <td>{request.priority}</td>
+                  <td>{request.units_needed}</td>
+                  <td>{request.notes}</td>
+                  <td>{request.status}</td>
                   <td>
                     <div className="action-buttons">
-                      {request.status === 'On Hold' && (
-                        <>
-                          <button className="btn btn-primary btn-small">Approve</button>
-                          <button className="btn btn-secondary btn-small">Reject</button>
-                        </>
-                      )}
+                      <button className="btn btn-primary btn-small" onClick={() => handleApproveHospital(request.id)}>Approve</button>
+                      <button className="btn btn-secondary btn-small" onClick={() => handleRejectHospital(request.id)}>Reject</button>
                     </div>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
-          <div className="summary-text">Showing {otherHospitalRequests.length} requests from other hospitals</div>
         </div>
       )}
 

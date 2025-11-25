@@ -3,73 +3,24 @@
 import React, { useState } from 'react'
 import HospitalLayout from '@/components/HospitalLayout'
 
-// Mock data for stock
-const mockStock = [
-  {
-    id: 1,
-    type: 'O+',
-    description: 'Universal Donor',
-    quantity: 25,
-    requests: 5,
-    difference: 20,
-  },
-  {
-    id: 2,
-    type: 'O-',
-    description: 'Universal Recipient',
-    quantity: 15,
-    requests: 3,
-    difference: 12,
-  },
-  {
-    id: 3,
-    type: 'A+',
-    description: 'Type A Positive',
-    quantity: 30,
-    requests: 8,
-    difference: 22,
-  },
-  {
-    id: 4,
-    type: 'A-',
-    description: 'Type A Negative',
-    quantity: 12,
-    requests: 2,
-    difference: 10,
-  },
-  {
-    id: 5,
-    type: 'B+',
-    description: 'Type B Positive',
-    quantity: 18,
-    requests: 4,
-    difference: 14,
-  },
-  {
-    id: 6,
-    type: 'B-',
-    description: 'Type B Negative',
-    quantity: 8,
-    requests: 1,
-    difference: 7,
-  },
-  {
-    id: 7,
-    type: 'AB+',
-    description: 'Universal Recipient',
-    quantity: 10,
-    requests: 2,
-    difference: 8,
-  },
-  {
-    id: 8,
-    type: 'AB-',
-    description: 'Rare Type',
-    quantity: 5,
-    requests: 1,
-    difference: 4,
-  },
-]
+// Correct Stock schema and mockStock
+interface StockUnit {
+  id: number;
+  hospital_id: number;
+  blood_type: string;
+  quantity: number;
+  date: string;
+}
+const mockStock: StockUnit[] = [
+  { id: 1, hospital_id: 1, blood_type: 'O+', quantity: 25, date: '2024-09-15' },
+  { id: 2, hospital_id: 1, blood_type: 'O-', quantity: 15, date: '2024-09-16' },
+  { id: 3, hospital_id: 1, blood_type: 'A+', quantity: 30, date: '2024-09-17' },
+  { id: 4, hospital_id: 1, blood_type: 'A-', quantity: 12, date: '2024-09-18' },
+  { id: 5, hospital_id: 1, blood_type: 'B+', quantity: 18, date: '2024-09-19' },
+  { id: 6, hospital_id: 1, blood_type: 'B-', quantity: 8, date: '2024-09-20' },
+  { id: 7, hospital_id: 1, blood_type: 'AB+', quantity: 10, date: '2024-09-21' },
+  { id: 8, hospital_id: 1, blood_type: 'AB-', quantity: 5, date: '2024-09-22' },
+];
 
 const mockDonators = [
   {
@@ -137,10 +88,14 @@ interface Donator {
 
 export default function StockPage() {
   const [activeTab, setActiveTab] = useState<'stock' | 'donators' | 'forever-donators'>('stock')
-  const [stock] = useState(mockStock)
+  const [stock, setStock] = useState<StockUnit[]>(mockStock)
   const [donators] = useState<Donator[]>(mockDonators)
+  const [showAddModal, setShowAddModal] = useState(false)
+  const [newStock, setNewStock] = useState<Omit<StockUnit, 'id'> >({ hospital_id: 1, blood_type: '', quantity: 0, date: '' })
   const [showScheduleModal, setShowScheduleModal] = useState(false)
   const [selectedDonator, setSelectedDonator] = useState<Donator | null>(null)
+  const [showUpdateModal, setShowUpdateModal] = useState(false)
+  const [editStock, setEditStock] = useState<StockUnit | null>(null)
 
   const totalUnits = stock.reduce((sum, item) => sum + item.quantity, 0)
   const foreverDonators = donators.filter((d) => d.isForever)
@@ -151,11 +106,32 @@ export default function StockPage() {
     setShowScheduleModal(true)
   }
 
+  // Add New Unit handler
+  const handleAddUnit = () => {
+    setStock([{ ...newStock, id: stock.length + 1 }, ...stock])
+    setShowAddModal(false)
+    setNewStock({ hospital_id: 1, blood_type: '', quantity: 0, date: '' })
+  }
+
+  const handleUpdateClick = (unit: StockUnit) => {
+    setEditStock(unit)
+    setShowUpdateModal(true)
+  }
+  const handleSaveUpdate = () => {
+    if (editStock) {
+      setStock(stock.map(u => u.id === editStock.id ? editStock : u))
+      setShowUpdateModal(false)
+      setEditStock(null)
+    }
+  }
+
   return (
     <HospitalLayout>
       <div className="page-header">
         <h1 className="page-title">CHU Mustapha</h1>
-        <button className="btn btn-primary">Add New Unit</button>
+        <button className="btn btn-primary" onClick={() => setShowAddModal(true)}>
+          Add New Unit
+        </button>
       </div>
 
       <div className="tabs">
@@ -184,35 +160,23 @@ export default function StockPage() {
           <table className="table">
             <thead>
               <tr>
-                <th>Type</th>
-                <th>Description</th>
+                <th>Hospital ID</th>
+                <th>Blood Type</th>
                 <th>Quantity</th>
-                <th>Number of Requests</th>
-                <th>Difference</th>
+                <th>Date</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
               {stock.map((item) => (
                 <tr key={item.id}>
-                  <td style={{ fontWeight: 'bold', color: 'var(--primary-red)' }}>
-                    {item.type}
-                  </td>
-                  <td>{item.description}</td>
+                  <td>{item.hospital_id}</td>
+                  <td>{item.blood_type}</td>
                   <td>{item.quantity}</td>
-                  <td>{item.requests}</td>
-                  <td
-                    style={{
-                      color: item.difference >= 0 ? '#059669' : '#dc2626',
-                      fontWeight: '600',
-                    }}
-                  >
-                    {item.difference >= 0 ? '+' : ''}
-                    {item.difference}
-                  </td>
+                  <td>{item.date}</td>
                   <td>
                     <div className="action-buttons">
-                      <button className="btn btn-primary btn-small">Update</button>
+                      <button className="btn btn-primary btn-small" onClick={() => handleUpdateClick(item)}>Update</button>
                     </div>
                   </td>
                 </tr>
@@ -305,6 +269,94 @@ export default function StockPage() {
             </tbody>
           </table>
           <div className="summary-text">Showing {foreverDonators.length} forever donators</div>
+        </div>
+      )}
+
+      {showAddModal && (
+        <div className="modal-overlay" onClick={() => setShowAddModal(false)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2 className="modal-title">Add New Unit</h2>
+              <button className="modal-close" onClick={() => setShowAddModal(false)}>
+                ×
+              </button>
+            </div>
+            <div>
+              <div className="form-group">
+                <label className="form-label">Hospital ID:</label>
+                <input type="number" className="form-input" value={newStock.hospital_id} onChange={e => setNewStock(ns => ({ ...ns, hospital_id: parseInt(e.target.value, 10) }))} min="1" />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Blood Type:</label>
+                <select className="form-select" value={newStock.blood_type} onChange={e => setNewStock(ns => ({ ...ns, blood_type: e.target.value }))}>
+                  <option value="">Select Blood Type</option>
+                  <option>O+</option>
+                  <option>O-</option>
+                  <option>A+</option>
+                  <option>A-</option>
+                  <option>B+</option>
+                  <option>B-</option>
+                  <option>AB+</option>
+                  <option>AB-</option>
+                </select>
+              </div>
+              <div className="form-group">
+                <label className="form-label">Quantity:</label>
+                <input type="number" className="form-input" value={newStock.quantity} onChange={e => setNewStock(ns => ({ ...ns, quantity: parseInt(e.target.value, 10) }))} min="1" />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Date:</label>
+                <input type="date" className="form-input" value={newStock.date} onChange={e => setNewStock(ns => ({ ...ns, date: e.target.value }))} />
+              </div>
+              <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+                <button className="btn btn-secondary" onClick={() => setShowAddModal(false)}>Cancel</button>
+                <button className="btn btn-primary" onClick={handleAddUnit}>Add Unit</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showUpdateModal && editStock && (
+        <div className="modal-overlay" onClick={() => setShowUpdateModal(false)}>
+          <div className="modal" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2 className="modal-title">Update Unit</h2>
+              <button className="modal-close" onClick={() => setShowUpdateModal(false)}>×</button>
+            </div>
+            <div>
+              <div className="form-group">
+                <label className="form-label">Hospital ID:</label>
+                <input type="number" className="form-input" value={editStock.hospital_id} onChange={e => setEditStock({...editStock, hospital_id: parseInt(e.target.value, 10)})} min="1" />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Blood Type:</label>
+                <select className="form-select" value={editStock.blood_type} onChange={e => setEditStock({...editStock, blood_type: e.target.value})}>
+                  <option value="">Select Blood Type</option>
+                  <option>O+</option>
+                  <option>O-</option>
+                  <option>A+</option>
+                  <option>A-</option>
+                  <option>B+</option>
+                  <option>B-</option>
+                  <option>AB+</option>
+                  <option>AB-</option>
+                </select>
+              </div>
+              <div className="form-group">
+                <label className="form-label">Quantity:</label>
+                <input type="number" className="form-input" value={editStock.quantity} onChange={e => setEditStock({...editStock, quantity: parseInt(e.target.value, 10)})} min="1" />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Date:</label>
+                <input type="date" className="form-input" value={editStock.date} onChange={e => setEditStock({...editStock, date: e.target.value})} />
+              </div>
+              <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+                <button className="btn btn-secondary" onClick={() => setShowUpdateModal(false)}>Cancel</button>
+                <button className="btn btn-primary" onClick={handleSaveUpdate}>Save Update</button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
