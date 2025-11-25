@@ -5,16 +5,13 @@ import { cookies } from "next/headers";
 export async function POST(req: Request) {
   const supabase = createRouteHandlerClient({ cookies });
 
-  // get input
   const { blood_type, quantity } = await req.json();
   if (!blood_type || !quantity)
     return NextResponse.json({ error: "Missing inputs" }, { status: 400 });
 
-  // auth
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Not auth" }, { status: 401 });
 
-  // get hospital
   const { data: hospital } = await supabase
     .from("hospitals")
     .select("id")
@@ -23,8 +20,7 @@ export async function POST(req: Request) {
   if (!hospital)
     return NextResponse.json({ error: "Not hospital account" }, { status: 403 });
 
-  // call function
-  const { error } = await supabase.rpc("increment_stock", {
+  const { error } = await supabase.rpc("decrement_stock", {
     hospitalid: hospital.id,
     btype: blood_type,
     qty: quantity
