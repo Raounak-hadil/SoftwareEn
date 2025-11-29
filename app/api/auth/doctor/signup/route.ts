@@ -32,7 +32,7 @@ export async function POST(req: Request) {
         last_name,
         email,
         phone_num,
-        speciality
+        speciality 
       })
       .select("*")
       .single();
