@@ -41,7 +41,7 @@ export async function POST(req: Request) {
         last_name,
         email,
         phone_num,
-        speciality
+        speciality 
       })
       .select("id, first_name, last_name") // Select the specific fields you need, specially ID
       .single();
