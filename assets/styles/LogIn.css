@@ -1,0 +1,164 @@
+*,
+*::after,
+*::before {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 120vh;
+    font-weight: bold;
+    background-image: linear-gradient(to left, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url(../images/backg.jpg);
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: cover;
+}
+
+ul {
+    padding: 0;
+    margin: 0;
+    list-style-type: none;
+}
+
+a {
+    text-decoration: none;
+    color: black;
+}
+
+button {
+    cursor: pointer;
+}
+
+.main {
+    height: 90%;
+    width: 50%;
+    position: absolute;
+    top: 1vh;
+    left: 10vh;
+}
+
+.mainRow {
+    display: flex;
+    flex-direction: row;
+    position: relative;
+}
+
+.mainRow2 {
+    display: flex;
+    flex-direction: row;
+    position: relative;
+    position: absolute;
+    bottom: -26vh;
+    left: 24vh;
+}
+
+.fi {
+    color: white;
+    font-size: 0.7em;
+}
+
+.se {
+    margin-left: 1em;
+    color: #C50000;
+    font-size: 0.7em;
+}
+
+.Hospital {
+    font-size: 5em;
+    color: #C50000;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.Login {
+    margin-top: 115px;
+    margin-left: 20px;
+    font-size: 1.5em;
+    color: #F44545;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-weight: 300;
+
+}
+
+.input {
+    margin-right: 55px;
+    width: 80vb;
+    height: 10vh;
+    border-radius: 10px;
+    box-shadow: -2px 2px 2px 2px #C50000;
+    border: 0px;
+    font-size: 20px;
+    padding: 20px;
+    margin-bottom: 27px;
+    font-family: 'Times New Roman', Times, serif;
+}
+
+.input::placeholder {
+    color: #cd8181;
+    opacity: 1;
+}
+
+/* .input {
+    margin-right: 55px;
+    width: 80vb;
+    height: 10vh;
+    border-radius: 20px;
+    box-shadow: 2px 2px 2px 2px #C50000;
+    border: 0px;
+    font-size: 20px;
+    padding: 10px;
+} */
+
+.Forgot {
+    color:#C50000;
+    margin-top: 10px;
+}
+
+.submit {
+    height: 3em;
+    width: 9em;
+    background-color: #C50000;
+    color: white;
+    font-size: 1em;
+    font-weight: bold;
+    border-radius: 10px;
+    border: 0px;
+    box-shadow: 0;
+    position: absolute;
+    left: 25vh;
+    font-family: 'Times New Roman', Times, serif;
+}
+
+.choose {
+    width: 80vb;
+    height: 60px;
+    border-radius: 10px;
+    background-color: white;
+    margin-top: 50px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: row;
+}
+
+.left {
+    height: 100%;
+    width: 50%;
+    text-align: center;
+    border-radius: 10px;
+    border: none;
+    font-size: 1.5em;
+    font-family: 'Times New Roman', Times, serif;
+    color: white;
+    
+}
+
+.right {
+    height: 100%;
+    width: 50%;  
+    text-align: center;
+    border: none;
+    font-size: 1.5em;
+    font-family: 'Times New Roman', Times, serif;
+    color: #C50000;
+}
