@@ -4,38 +4,34 @@ import { cookies } from "next/headers";
 
 export async function POST(req: Request) {
   const supabase = createRouteHandlerClient({ cookies });
-  const body = await req.json();
-  const { email, password, hosname, phone_num, city, state, year_of_est, type, license_file } = body;
 
-  // Create Supabase Auth user
-  const { data: authData, error: authError } = await supabase.auth.signUp({
-    email,
-    password
+  // get input
+  const { blood_type, quantity } = await req.json();
+  if (!blood_type || !quantity)
+    return NextResponse.json({ error: "Missing inputs" }, { status: 400 });
+
+  // auth
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return NextResponse.json({ error: "Not auth" }, { status: 401 });
+
+  // get hospital
+  const { data: hospital } = await supabase
+    .from("hospitals")
+    .select("id")
+    .eq("auth_id", user.id)
+    .single();
+  if (!hospital)
+    return NextResponse.json({ error: "Not hospital account" }, { status: 403 });
+
+  // call function
+  const { error } = await supabase.rpc("increment_stock", {
+    hospitalid: hospital.id,
+    btype: blood_type,
+    qty: quantity
   });
 
-  if (authError) {
-    return NextResponse.json({ error: authError.message }, { status: 400 });
-  }
-
-  // Insert hospital profile using auth_id
-  const { error } = await supabase
-  .from("hospitals")
-  .insert({
-    auth_id: authData.user!.id,
-    email,
-    hosname,
-    phone_num,
-    city,
-    state,
-    year_of_est,
-    type,
-    license_file
-  });
-
-
-  if (error) {
+  if (error)
     return NextResponse.json({ error: error.message }, { status: 400 });
-  }
 
-  return NextResponse.json({ success: true, user: authData.user });
+  return NextResponse.json({ success: true });
 }
