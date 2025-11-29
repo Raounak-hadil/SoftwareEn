@@ -1,32 +1,12 @@
 import '../../../assets/styles/LogIn.css'
 
-
-let isHospital = true;
-function col(isHospital : boolean) {
-    if (isHospital == true) {
-        return "#C50000"
-    }
-    else {
-        return "#FFFFFF"
-    }
-}
-
-
-function setTrue() {
-    isHospital = true
-}
-
-function setFalse() {
-    isHospital = false
-}
-
 function LogIn() {
     return (
         <>
             <div className="main">
                 <div className="choose">
-                    <button className="left" style={{backgroundColor: col(isHospital)}} onClick={setTrue}> Hispital </button>
-                    <button className="right" style={{backgroundColor: col(!isHospital)}} onClick={setFalse}> Doctor </button>
+                    <button className="left" style={{backgroundColor: "#C50000"}}> Hispital </button>
+                    <button className="right" style={{backgroundColor: "#FFFFFF"}}> Doctor </button>
                 </div>
                 <div className="mainRow">
                     <h1 className="Hospital">Hospital</h1>

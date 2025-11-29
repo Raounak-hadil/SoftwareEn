@@ -1,4 +1,4 @@
-import '../../../assets/styles/Forms.css'
+import '@/assets/styles/Form.css'
 
 function Form() {
     return (
