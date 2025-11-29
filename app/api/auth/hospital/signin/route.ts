@@ -4,25 +4,8 @@ import { cookies } from "next/headers";
 
 export async function POST(req: Request) {
   const supabase = createRouteHandlerClient({ cookies });
-  
-  let body;
-  try {
-    body = await req.json();
-    console.log("Login body:", body);
-  } catch (err) {
-    console.error("Failed to parse JSON:", err);
-    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
-  }
 
-  const { email, password } = body;
-
-  if (!email || !password) {
-    console.log("Email or password missing");
-    return NextResponse.json({ error: "Email & password required" }, { status: 400 });
-  }
-
-  // Log before calling Supabase
-  console.log("Attempting login for email:", email);
+  const { email, password } = await req.json();
 
   const { data, error } = await supabase.auth.signInWithPassword({
     email,
@@ -30,11 +13,16 @@ export async function POST(req: Request) {
   });
 
   if (error) {
-    console.error("Supabase login error:", error);
-    return NextResponse.json({ error: "Invalid email or password", details: error }, { status: 401 });
+    return NextResponse.json({ error: error.message }, { status: 401 });
   }
 
-  console.log("Login successful:", data.user?.id);
+  // Correct: setSession expects { access_token, refresh_token }
+  if (data.session) {
+    await supabase.auth.setSession({
+      access_token: data.session.access_token,
+      refresh_token: data.session.refresh_token
+    });
+  }
 
-  return NextResponse.json({ success: true, user: data.user });
+  return NextResponse.json({ success: true, user: data.user, session: data.session });
 }
