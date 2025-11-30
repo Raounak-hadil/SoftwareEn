@@ -37,7 +37,7 @@ export async function GET() {
       )
     `)
     .eq("hospital_id", hospital.id)
-    .eq("accepted", "Accept");
+    .eq("accepted", "Waiting");
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 400 });
