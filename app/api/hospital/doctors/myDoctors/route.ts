@@ -36,7 +36,8 @@ export async function GET() {
         speciality
       )
     `)
-    .eq("hospital_id", hospital.id);
+    .eq("hospital_id", hospital.id)
+    .eq("accepted", "Accept");
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 400 });
