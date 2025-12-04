@@ -1,4 +1,4 @@
-import LogIn from './LogIn.tsx';
+import LogIn from './LogIn';
 
 export default function LogInPage() {
 	return (

@@ -1,6 +1,14 @@
 import '../../../assets/styles/SignIn.css'
+import { useState } from 'react';
 
-function SignIn1() {
+import { Dispatch, SetStateAction } from 'react';
+
+type SignInProps = {
+  page: boolean;
+  setPage: Dispatch<SetStateAction<boolean>>;
+};
+
+function SignIn1({ page, setPage }: SignInProps) {
     return (
         <>
             <div className="main">
@@ -36,7 +44,7 @@ function SignIn1() {
                     />
                     <input
                         placeholder="  Year of establishment*"
-                        type="text"
+                        type="date"
                         id="username"
                         className="input"
                         required
@@ -59,7 +67,7 @@ function SignIn1() {
                         className="input"
                         required
                     />
-                    <button type="submit" className="submit">Next</button>  
+                    <button type="button" className="submit" onClick={() => setPage(false)}>Next</button>  
                 </form>
             </div>
         </>
