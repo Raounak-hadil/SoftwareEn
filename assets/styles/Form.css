@@ -33,7 +33,7 @@ button {
 }
 
 * {
-    z-index: 2;
+    z-index: 1;
 }
 
 .main {
@@ -47,7 +47,7 @@ button {
     padding: 2em 4em;
     display: flex;
     flex-direction: row;
-    z-index: 2;
+    
     overflow: hidden;
 }
 
@@ -86,6 +86,10 @@ button {
 .input::placeholder {
     color: rgb(181, 181, 181);
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+input[type="date"] {
+  color: rgb(181, 181, 181);
 }
 
 .label {
@@ -143,7 +147,7 @@ button {
 .circle {
     position: absolute;
     background-color: #C50000;
-    z-index: 1;
+    z-index: 0;
 }
 
 .circle1 {
