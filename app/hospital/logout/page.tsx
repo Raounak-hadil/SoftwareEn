@@ -14,11 +14,7 @@ export default function LogoutPage() {
   }, [router])
 
   return (
-<<<<<<< HEAD
-    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-=======
     <div className="flex justify-center items-center h-screen">
->>>>>>> hospitalprofilelast
       <p>Logging out...</p>
     </div>
   )

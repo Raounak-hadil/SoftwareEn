@@ -127,21 +127,14 @@ const mockStock = [
 ]
 
 export default function DoctorsPage() {
-<<<<<<< HEAD
   const [activeTab, setActiveTab] = useState<'stock' | 'doctors' | 'requests'>('doctors')
-=======
-  const [activeTab, setActiveTab] = useState<'stock' | 'doctors'>('doctors')
->>>>>>> hospitalprofilelast
   const [selectedHospitalId, setSelectedHospitalId] = useState<number | null>(null)
   const [doctors, setDoctors] = useState<Doctor[]>(mockDoctors)
   const [doctorRequests, setDoctorRequests] = useState<DoctorRequest[]>(mockDoctorRequests)
   const [showModal, setShowModal] = useState(false)
   const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null)
   const [form, setForm] = useState<DoctorInput>({
-<<<<<<< HEAD
     hospital_id: 1,
-=======
->>>>>>> hospitalprofilelast
     first_name: '',
     last_name: '',
     email: '',
@@ -162,14 +155,9 @@ export default function DoctorsPage() {
       id: doctors.length + 1, // or use real id generator
       image: 'https://i.pravatar.cc/150?img=' + (doctors.length + 10),
     }
-<<<<<<< HEAD
-    setShowModal(false)
-    setForm({ hospital_id: 1, first_name: '', last_name: '', email: '', phone_num: '', speciality: '', auth_id: '' })
-=======
     setDoctors([newDoctor, ...doctors])
     setShowModal(false)
-    setForm({ first_name: '', last_name: '', email: '', phone_num: '', speciality: '', auth_id: '' })
->>>>>>> hospitalprofilelast
+    setForm({ hospital_id: 1, first_name: '', last_name: '', email: '', phone_num: '', speciality: '', auth_id: '' })
   }
 
   // Accept = add to doctors, remove from requests
@@ -186,37 +174,6 @@ export default function DoctorsPage() {
 
   return (
     <HospitalLayout>
-<<<<<<< HEAD
-      <div className="page-header">
-        <h1 className="page-title">CHU Mustapha</h1>
-      </div>
-
-      <div className="tabs">
-        <button className={`tab${activeTab === 'doctors' ? ' active' : ''}`} onClick={() => setActiveTab('doctors')}>Doctors</button>
-        <button className={`tab${activeTab === 'requests' ? ' active' : ''}`} onClick={() => setActiveTab('requests')}>Doctor Requests</button>
-        <Link href="/hospital/stock" legacyBehavior><a className="tab">Stock</a></Link>
-      </div>
-
-      {activeTab === 'requests' && (
-        <div className="cards-grid">
-          {doctorRequests.map((req) => (
-            <div key={req.id} className="card">
-              <img
-                src={`https://i.pravatar.cc/150?u=${req.email}`}
-                alt={`${req.first_name} ${req.last_name}`}
-                className="card-image"
-              />
-              <h3 className="card-title">{req.first_name} {req.last_name}</h3>
-              <p className="card-text">{req.email}</p>
-              <p className="card-text" style={{ fontSize: '12px', color: '#6b7280' }}>
-                {req.speciality}
-              </p>
-              <p className="card-text">{req.phone_num}</p>
-              <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
-                <button
-                  className="btn btn-primary"
-                  style={{ flex: 1 }}
-=======
       <div className="flex justify-between items-center mb-[30px]">
         <h1 className="text-[32px] font-bold text-[#111827] mb-[30px]">CHU Mustapha</h1>
       </div>
@@ -265,18 +222,12 @@ export default function DoctorsPage() {
               <div className="flex gap-2.5 mt-2.5">
                 <button
                   className="flex-1 py-2.5 px-5 border-none rounded-lg text-sm font-semibold cursor-pointer transition-all duration-300 inline-flex items-center gap-2 bg-[#dc2626] text-white hover:bg-[#dc2626]-hover"
->>>>>>> hospitalprofilelast
                   onClick={() => handleAcceptRequest(req)}
                 >
                   Accept
                 </button>
                 <button
-<<<<<<< HEAD
-                  className="btn btn-secondary"
-                  style={{ flex: 1 }}
-=======
                   className="flex-1 py-2.5 px-5 border-none rounded-lg text-sm font-semibold cursor-pointer transition-all duration-300 inline-flex items-center gap-2 bg-white text-[#111827] border border-[#e5e7eb] hover:bg-[#f9fafb]"
->>>>>>> hospitalprofilelast
                   onClick={() => handleRejectRequest(req.id)}
                 >
                   Reject
@@ -287,28 +238,6 @@ export default function DoctorsPage() {
         </div>
       )}
       {activeTab === 'doctors' && (
-<<<<<<< HEAD
-        <div className="cards-grid">
-          {doctors.map((doctor) => (
-            <div key={doctor.id} className="card">
-              <img
-                src={doctor.image}
-                alt={`${doctor.first_name} ${doctor.last_name}`}
-                className="card-image"
-              />
-              <h3 className="card-title">{doctor.first_name} {doctor.last_name}</h3>
-              <p className="card-text">{doctor.email}</p>
-              <p className="card-text" style={{ fontSize: '12px', color: '#6b7280' }}>
-                {doctor.speciality}
-              </p>
-              <p className="card-text">{doctor.phone_num}</p>
-              <button
-                className="btn btn-primary"
-                style={{ width: '100%', marginTop: '10px' }}
-                onClick={() => handleMessage(doctor)}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" style={{ width: '16px', height: '16px' }}>
-=======
         <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-5 mt-5">
           {doctors.map((doctor) => (
             <div key={doctor.id} className="bg-white rounded-lg p-5 shadow-[0_1px_3px_rgba(0,0,0,0.1)] transition-transform duration-200 hover:-translate-y-0.5 hover:shadow-[0_4px_6px_rgba(0,0,0,0.1)]">
@@ -328,7 +257,6 @@ export default function DoctorsPage() {
                 onClick={() => handleMessage(doctor)}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
->>>>>>> hospitalprofilelast
                   <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
                 </svg>
                 Message
@@ -339,16 +267,6 @@ export default function DoctorsPage() {
       )}
 
       {showModal && (
-<<<<<<< HEAD
-        <div className="modal-overlay" onClick={() => setShowModal(false)}>
-          <div className="modal" onClick={(e: React.MouseEvent<HTMLDivElement>) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2 className="modal-title">
-                {selectedDoctor ? `Message ${selectedDoctor.first_name} ${selectedDoctor.last_name}` : 'Add New Doctor'}
-              </h2>
-              <button
-                className="modal-close"
-=======
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000]" onClick={() => setShowModal(false)}>
           <div className="bg-white rounded-lg p-[30px] max-w-[500px] w-[90%] max-h-[90vh] overflow-y-auto" onClick={(e: React.MouseEvent<HTMLDivElement>) => e.stopPropagation()}>
             <div className="flex justify-between items-center mb-5">
@@ -357,7 +275,6 @@ export default function DoctorsPage() {
               </h2>
               <button
                 className="bg-none border-none text-2xl cursor-pointer text-[#6b7280]"
->>>>>>> hospitalprofilelast
                 onClick={() => {
                   setShowModal(false)
                   setSelectedDoctor(null)
@@ -368,33 +285,15 @@ export default function DoctorsPage() {
             </div>
             {selectedDoctor ? (
               <div>
-<<<<<<< HEAD
-                <div className="form-group">
-                  <label className="form-label">To:</label>
-                  <input
-                    type="text"
-                    className="form-input"
-=======
                 <div className="mb-5">
                   <label className="block mb-2 font-semibold text-[#111827] text-sm">To:</label>
                   <input
                     type="text"
                     className="w-full py-2.5 px-[15px] border border-[#e5e7eb] rounded-lg text-sm focus:outline-none focus:border-[#dc2626]"
->>>>>>> hospitalprofilelast
                     value={selectedDoctor.email}
                     readOnly
                   />
                 </div>
-<<<<<<< HEAD
-                <div className="form-group">
-                  <label className="form-label">Subject:</label>
-                  <input type="text" className="form-input" placeholder="Enter subject" />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Message:</label>
-                  <textarea
-                    className="form-input"
-=======
                 <div className="mb-5">
                   <label className="block mb-2 font-semibold text-[#111827] text-sm">Subject:</label>
                   <input type="text" className="w-full py-2.5 px-[15px] border border-[#e5e7eb] rounded-lg text-sm focus:outline-none focus:border-[#dc2626]" placeholder="Enter subject" />
@@ -403,20 +302,13 @@ export default function DoctorsPage() {
                   <label className="block mb-2 font-semibold text-[#111827] text-sm">Message:</label>
                   <textarea
                     className="w-full py-2.5 px-[15px] border border-[#e5e7eb] rounded-lg text-sm focus:outline-none focus:border-[#dc2626]"
->>>>>>> hospitalprofilelast
                     rows={5}
                     placeholder="Enter your message"
                   ></textarea>
                 </div>
-<<<<<<< HEAD
-                <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
-                  <button
-                    className="btn btn-secondary"
-=======
                 <div className="flex gap-2.5 justify-end">
                   <button
                     className="py-2.5 px-5 border-none rounded-lg text-sm font-semibold cursor-pointer transition-all duration-300 inline-flex items-center gap-2 bg-white text-[#111827] border border-[#e5e7eb] hover:bg-[#f9fafb]"
->>>>>>> hospitalprofilelast
                     onClick={() => {
                       setShowModal(false)
                       setSelectedDoctor(null)
@@ -424,46 +316,11 @@ export default function DoctorsPage() {
                   >
                     Cancel
                   </button>
-<<<<<<< HEAD
-                  <button className="btn btn-primary">Send Message</button>
-=======
                   <button className="py-2.5 px-5 border-none rounded-lg text-sm font-semibold cursor-pointer transition-all duration-300 inline-flex items-center gap-2 bg-[#dc2626] text-white hover:bg-[#dc2626]-hover">Send Message</button>
->>>>>>> hospitalprofilelast
                 </div>
               </div>
             ) : (
               <div>
-<<<<<<< HEAD
-                <div className="form-group">
-                  <label className="form-label">First Name:</label>
-                  <input type="text" className="form-input" placeholder="Enter first name" value={form.first_name} onChange={e => setForm(f => ({ ...f, first_name: e.target.value }))} />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Last Name:</label>
-                  <input type="text" className="form-input" placeholder="Enter last name" value={form.last_name} onChange={e => setForm(f => ({ ...f, last_name: e.target.value }))} />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Email:</label>
-                  <input type="email" className="form-input" placeholder="Enter email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Phone Number:</label>
-                  <input type="text" className="form-input" placeholder="Enter phone number" value={form.phone_num} onChange={e => setForm(f => ({ ...f, phone_num: e.target.value }))} />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Speciality:</label>
-                  <input type="text" className="form-input" placeholder="Enter speciality" value={form.speciality} onChange={e => setForm(f => ({ ...f, speciality: e.target.value }))} />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Auth ID (optional):</label>
-                  <input type="text" className="form-input" placeholder="Enter auth id" value={form.auth_id} onChange={e => setForm(f => ({ ...f, auth_id: e.target.value }))} />
-                </div>
-                <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
-                  <button className="btn btn-secondary" onClick={() => setShowModal(false)}>
-                    Cancel
-                  </button>
-                  <button className="btn btn-primary" onClick={handleAddDoctor}>
-=======
                 <div className="mb-5">
                   <label className="block mb-2 font-semibold text-[#111827] text-sm">First Name:</label>
                   <input type="text" className="w-full py-2.5 px-[15px] border border-[#e5e7eb] rounded-lg text-sm focus:outline-none focus:border-[#dc2626]" placeholder="Enter first name" value={form.first_name} onChange={e => setForm(f => ({ ...f, first_name: e.target.value }))} />
@@ -493,7 +350,6 @@ export default function DoctorsPage() {
                     Cancel
                   </button>
                   <button className="py-2.5 px-5 border-none rounded-lg text-sm font-semibold cursor-pointer transition-all duration-300 inline-flex items-center gap-2 bg-[#dc2626] text-white hover:bg-[#dc2626]-hover" onClick={handleAddDoctor}>
->>>>>>> hospitalprofilelast
                     Add Doctor
                   </button>
                 </div>
