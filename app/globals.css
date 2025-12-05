@@ -1,0 +1,48 @@
+@import "tailwindcss";
+
+@layer base {
+  * {
+    @apply m-0 p-0 box-border;
+  }
+
+  body {
+    @apply antialiased;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+      'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+      sans-serif;
+    background-color: #f5f5f5;
+  }
+}
+
+@layer components {
+  /* Status Badges */
+  .status-completed {
+    @apply px-3 py-1 rounded-full text-xs font-semibold inline-block;
+    background-color: #d1fae5;
+    color: #065f46;
+  }
+
+  .status-processing {
+    @apply px-3 py-1 rounded-full text-xs font-semibold inline-block;
+    background-color: #e9d5ff;
+    color: #6b21a8;
+  }
+
+  .status-rejected {
+    @apply px-3 py-1 rounded-full text-xs font-semibold inline-block;
+    background-color: #fee2e2;
+    color: #991b1b;
+  }
+
+  .status-on-hold {
+    @apply px-3 py-1 rounded-full text-xs font-semibold inline-block;
+    background-color: #fed7aa;
+    color: #9a3412;
+  }
+
+  .status-in-transit {
+    @apply px-3 py-1 rounded-full text-xs font-semibold inline-block;
+    background-color: #ddd6fe;
+    color: #5b21b6;
+  }
+}
