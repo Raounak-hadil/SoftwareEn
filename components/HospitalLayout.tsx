@@ -1,6 +1,6 @@
 import React from 'react'
-import Sidebar from './Sidebar'
-import Header from './Header'
+import Sidebar from '@/components/Sidebar'
+import Header from '@/components/Header'
 
 export default function HospitalLayout({
   children,
@@ -8,13 +8,12 @@ export default function HospitalLayout({
   children: React.ReactNode
 }) {
   return (
-    <div className="container">
+    <div className="flex min-h-screen">
       <Sidebar />
-      <div className="main-content">
+      <div className="flex-1 ml-[250px] flex flex-col">
         <Header />
-        <main className="content">{children}</main>
+        <main className="flex-1 p-[30px] bg-[#f9fafb]">{children}</main>
       </div>
     </div>
   )
 }
-

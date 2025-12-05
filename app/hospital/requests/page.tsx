@@ -163,28 +163,43 @@ export default function RequestsPage() {
 
   return (
     <HospitalLayout>
-      <div className="page-header">
-        <h1 className="page-title">Requests</h1>
-        <button className="btn btn-primary" onClick={() => setShowRequestModal(true)}>
+      <div className="flex justify-between items-center mb-[30px]">
+        <h1 className="text-[32px] font-bold text-[#111827] mb-[30px]">Requests</h1>
+        <button 
+          className="py-2.5 px-5 border-none rounded-lg text-sm font-semibold cursor-pointer transition-all duration-300 inline-flex items-center gap-2 bg-[#dc2626] text-white hover:bg-[#dc2626]-hover" 
+          onClick={() => setShowRequestModal(true)}
+        >
           Request from Other Hospital
         </button>
       </div>
 
-      <div className="tabs">
+      <div className="flex gap-2.5 mb-[30px]">
         <button
-          className={`tab ${activeTab === 'requests' ? 'active' : ''}`}
+          className={`py-2.5 px-5 border-none rounded-lg text-sm font-semibold cursor-pointer transition-all duration-300 ${
+            activeTab === 'requests' 
+              ? 'bg-[#dc2626] text-white' 
+              : 'bg-white text-[#dc2626] border border-[#dc2626]'
+          }`}
           onClick={() => setActiveTab('requests')}
         >
           Doctor Requests
         </button>
         <button
-          className={`tab ${activeTab === 'other-requests' ? 'active' : ''}`}
+          className={`py-2.5 px-5 border-none rounded-lg text-sm font-semibold cursor-pointer transition-all duration-300 ${
+            activeTab === 'other-requests' 
+              ? 'bg-[#dc2626] text-white' 
+              : 'bg-white text-[#dc2626] border border-[#dc2626]'
+          }`}
           onClick={() => setActiveTab('other-requests')}
         >
           Other Hospitals Requests
         </button>
         <button
-          className={`tab ${activeTab === 'forever-donators' ? 'active' : ''}`}
+          className={`py-2.5 px-5 border-none rounded-lg text-sm font-semibold cursor-pointer transition-all duration-300 ${
+            activeTab === 'forever-donators' 
+              ? 'bg-[#dc2626] text-white' 
+              : 'bg-white text-[#dc2626] border border-[#dc2626]'
+          }`}
           onClick={() => setActiveTab('forever-donators')}
         >
           Forever Donators
@@ -192,36 +207,36 @@ export default function RequestsPage() {
       </div>
 
       {activeTab === 'requests' && (
-        <div className="table-container">
-          <table className="table">
-            <thead>
+        <div className="bg-white rounded-lg overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.1)]">
+          <table className="w-full border-collapse">
+            <thead className="bg-[#f9fafb]">
               <tr>
-                <th>Hospital ID</th>
-                <th>Doctor ID</th>
-                <th>Urgency</th>
-                <th>Blood Type</th>
-                <th>Quantity</th>
-                <th>Request Date</th>
-                <th>Status</th>
-                <th>Seen</th>
-                <th>Actions</th>
+                <th className="p-[15px] text-left font-semibold text-[#111827] text-sm uppercase border-b-2 border-[#e5e7eb]">Hospital ID</th>
+                <th className="p-[15px] text-left font-semibold text-[#111827] text-sm uppercase border-b-2 border-[#e5e7eb]">Doctor ID</th>
+                <th className="p-[15px] text-left font-semibold text-[#111827] text-sm uppercase border-b-2 border-[#e5e7eb]">Urgency</th>
+                <th className="p-[15px] text-left font-semibold text-[#111827] text-sm uppercase border-b-2 border-[#e5e7eb]">Blood Type</th>
+                <th className="p-[15px] text-left font-semibold text-[#111827] text-sm uppercase border-b-2 border-[#e5e7eb]">Quantity</th>
+                <th className="p-[15px] text-left font-semibold text-[#111827] text-sm uppercase border-b-2 border-[#e5e7eb]">Request Date</th>
+                <th className="p-[15px] text-left font-semibold text-[#111827] text-sm uppercase border-b-2 border-[#e5e7eb]">Status</th>
+                <th className="p-[15px] text-left font-semibold text-[#111827] text-sm uppercase border-b-2 border-[#e5e7eb]">Seen</th>
+                <th className="p-[15px] text-left font-semibold text-[#111827] text-sm uppercase border-b-2 border-[#e5e7eb]">Actions</th>
               </tr>
             </thead>
             <tbody>
               {doctorRequests.map((request) => (
-                <tr key={request.id}>
-                  <td>{request.hospital_id}</td>
-                  <td>{request.doctor_id}</td>
-                  <td>{request.urgency}</td>
-                  <td>{request.blood_type}</td>
-                  <td>{request.quantity}</td>
-                  <td>{request.request_date}</td>
-                  <td>{request.status}</td>
-                  <td>{request.seen ? 'Yes' : 'No'}</td>
-                  <td>
-                    <div className="action-buttons">
-                      <button className="btn btn-primary btn-small" onClick={() => handleApproveDoctor(request.id)}>Approve</button>
-                      <button className="btn btn-secondary btn-small" onClick={() => handleRejectDoctor(request.id)}>Reject</button>
+                <tr key={request.id} className="hover:bg-[#f9fafb]">
+                  <td className="p-[15px] border-b border-[#e5e7eb] text-[#111827] text-sm">{request.hospital_id}</td>
+                  <td className="p-[15px] border-b border-[#e5e7eb] text-[#111827] text-sm">{request.doctor_id}</td>
+                  <td className="p-[15px] border-b border-[#e5e7eb] text-[#111827] text-sm">{request.urgency}</td>
+                  <td className="p-[15px] border-b border-[#e5e7eb] text-[#111827] text-sm">{request.blood_type}</td>
+                  <td className="p-[15px] border-b border-[#e5e7eb] text-[#111827] text-sm">{request.quantity}</td>
+                  <td className="p-[15px] border-b border-[#e5e7eb] text-[#111827] text-sm">{request.request_date}</td>
+                  <td className="p-[15px] border-b border-[#e5e7eb] text-[#111827] text-sm">{request.status}</td>
+                  <td className="p-[15px] border-b border-[#e5e7eb] text-[#111827] text-sm">{request.seen ? 'Yes' : 'No'}</td>
+                  <td className="p-[15px] border-b border-[#e5e7eb] text-[#111827] text-sm">
+                    <div className="flex gap-2">
+                      <button className="py-1.5 px-3 border-none rounded-lg text-xs font-semibold cursor-pointer transition-all duration-300 inline-flex items-center gap-2 bg-[#dc2626] text-white hover:bg-[#dc2626]-hover" onClick={() => handleApproveDoctor(request.id)}>Approve</button>
+                      <button className="py-1.5 px-3 border-none rounded-lg text-xs font-semibold cursor-pointer transition-all duration-300 inline-flex items-center gap-2 bg-white text-[#111827] border border-[#e5e7eb] hover:bg-[#f9fafb]" onClick={() => handleRejectDoctor(request.id)}>Reject</button>
                     </div>
                   </td>
                 </tr>
@@ -232,36 +247,36 @@ export default function RequestsPage() {
       )}
 
       {activeTab === 'other-requests' && (
-        <div className="table-container">
-          <table className="table">
-            <thead>
+        <div className="bg-white rounded-lg overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.1)]">
+          <table className="w-full border-collapse">
+            <thead className="bg-[#f9fafb]">
               <tr>
-                <th>Hospital From ID</th>
-                <th>Hospital To ID</th>
-                <th>Email</th>
-                <th>Blood Type</th>
-                <th>Priority</th>
-                <th>Units Needed</th>
-                <th>Notes</th>
-                <th>Status</th>
-                <th>Actions</th>
+                <th className="p-[15px] text-left font-semibold text-[#111827] text-sm uppercase border-b-2 border-[#e5e7eb]">Hospital From ID</th>
+                <th className="p-[15px] text-left font-semibold text-[#111827] text-sm uppercase border-b-2 border-[#e5e7eb]">Hospital To ID</th>
+                <th className="p-[15px] text-left font-semibold text-[#111827] text-sm uppercase border-b-2 border-[#e5e7eb]">Email</th>
+                <th className="p-[15px] text-left font-semibold text-[#111827] text-sm uppercase border-b-2 border-[#e5e7eb]">Blood Type</th>
+                <th className="p-[15px] text-left font-semibold text-[#111827] text-sm uppercase border-b-2 border-[#e5e7eb]">Priority</th>
+                <th className="p-[15px] text-left font-semibold text-[#111827] text-sm uppercase border-b-2 border-[#e5e7eb]">Units Needed</th>
+                <th className="p-[15px] text-left font-semibold text-[#111827] text-sm uppercase border-b-2 border-[#e5e7eb]">Notes</th>
+                <th className="p-[15px] text-left font-semibold text-[#111827] text-sm uppercase border-b-2 border-[#e5e7eb]">Status</th>
+                <th className="p-[15px] text-left font-semibold text-[#111827] text-sm uppercase border-b-2 border-[#e5e7eb]">Actions</th>
               </tr>
             </thead>
             <tbody>
               {hospitalRequests.map((request) => (
-                <tr key={request.id}>
-                  <td>{request.hospital_from_id}</td>
-                  <td>{request.hospital_to_id}</td>
-                  <td>{request.email}</td>
-                  <td>{request.blood_type}</td>
-                  <td>{request.priority}</td>
-                  <td>{request.units_needed}</td>
-                  <td>{request.notes}</td>
-                  <td>{request.status}</td>
-                  <td>
-                    <div className="action-buttons">
-                      <button className="btn btn-primary btn-small" onClick={() => handleApproveHospital(request.id)}>Approve</button>
-                      <button className="btn btn-secondary btn-small" onClick={() => handleRejectHospital(request.id)}>Reject</button>
+                <tr key={request.id} className="hover:bg-[#f9fafb]">
+                  <td className="p-[15px] border-b border-[#e5e7eb] text-[#111827] text-sm">{request.hospital_from_id}</td>
+                  <td className="p-[15px] border-b border-[#e5e7eb] text-[#111827] text-sm">{request.hospital_to_id}</td>
+                  <td className="p-[15px] border-b border-[#e5e7eb] text-[#111827] text-sm">{request.email}</td>
+                  <td className="p-[15px] border-b border-[#e5e7eb] text-[#111827] text-sm">{request.blood_type}</td>
+                  <td className="p-[15px] border-b border-[#e5e7eb] text-[#111827] text-sm">{request.priority}</td>
+                  <td className="p-[15px] border-b border-[#e5e7eb] text-[#111827] text-sm">{request.units_needed}</td>
+                  <td className="p-[15px] border-b border-[#e5e7eb] text-[#111827] text-sm">{request.notes}</td>
+                  <td className="p-[15px] border-b border-[#e5e7eb] text-[#111827] text-sm">{request.status}</td>
+                  <td className="p-[15px] border-b border-[#e5e7eb] text-[#111827] text-sm">
+                    <div className="flex gap-2">
+                      <button className="py-1.5 px-3 border-none rounded-lg text-xs font-semibold cursor-pointer transition-all duration-300 inline-flex items-center gap-2 bg-[#dc2626] text-white hover:bg-[#dc2626]-hover" onClick={() => handleApproveHospital(request.id)}>Approve</button>
+                      <button className="py-1.5 px-3 border-none rounded-lg text-xs font-semibold cursor-pointer transition-all duration-300 inline-flex items-center gap-2 bg-white text-[#111827] border border-[#e5e7eb] hover:bg-[#f9fafb]" onClick={() => handleRejectHospital(request.id)}>Reject</button>
                     </div>
                   </td>
                 </tr>
@@ -272,69 +287,69 @@ export default function RequestsPage() {
       )}
 
       {activeTab === 'forever-donators' && (
-        <div className="table-container">
-          <table className="table">
-            <thead>
+        <div className="bg-white rounded-lg overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.1)]">
+          <table className="w-full border-collapse">
+            <thead className="bg-[#f9fafb]">
               <tr>
-                <th>Name</th>
-                <th>Phone</th>
-                <th>Blood Type</th>
-                <th>Last Donation</th>
-                <th>Actions</th>
+                <th className="p-[15px] text-left font-semibold text-[#111827] text-sm uppercase border-b-2 border-[#e5e7eb]">Name</th>
+                <th className="p-[15px] text-left font-semibold text-[#111827] text-sm uppercase border-b-2 border-[#e5e7eb]">Phone</th>
+                <th className="p-[15px] text-left font-semibold text-[#111827] text-sm uppercase border-b-2 border-[#e5e7eb]">Blood Type</th>
+                <th className="p-[15px] text-left font-semibold text-[#111827] text-sm uppercase border-b-2 border-[#e5e7eb]">Last Donation</th>
+                <th className="p-[15px] text-left font-semibold text-[#111827] text-sm uppercase border-b-2 border-[#e5e7eb]">Actions</th>
               </tr>
             </thead>
             <tbody>
               {foreverDonators.map((donator) => (
-                <tr key={donator.id}>
-                  <td>{donator.name}</td>
-                  <td>{donator.phone}</td>
-                  <td>{donator.bloodType}</td>
-                  <td>{donator.lastDonation}</td>
-                  <td>
-                    <div className="action-buttons">
+                <tr key={donator.id} className="hover:bg-[#f9fafb]">
+                  <td className="p-[15px] border-b border-[#e5e7eb] text-[#111827] text-sm">{donator.name}</td>
+                  <td className="p-[15px] border-b border-[#e5e7eb] text-[#111827] text-sm">{donator.phone}</td>
+                  <td className="p-[15px] border-b border-[#e5e7eb] text-[#111827] text-sm">{donator.bloodType}</td>
+                  <td className="p-[15px] border-b border-[#e5e7eb] text-[#111827] text-sm">{donator.lastDonation}</td>
+                  <td className="p-[15px] border-b border-[#e5e7eb] text-[#111827] text-sm">
+                    <div className="flex gap-2">
                       <button
-                        className="btn btn-primary btn-small"
+                        className="py-1.5 px-3 border-none rounded-lg text-xs font-semibold cursor-pointer transition-all duration-300 inline-flex items-center gap-2 bg-[#dc2626] text-white hover:bg-[#dc2626]-hover"
                         onClick={() => handleRequestDonator(donator)}
                       >
                         Request
                       </button>
-                      <button className="btn btn-secondary btn-small">Call</button>
-                      <button className="btn btn-secondary btn-small">SMS</button>
+                      <button className="py-1.5 px-3 border-none rounded-lg text-xs font-semibold cursor-pointer transition-all duration-300 inline-flex items-center gap-2 bg-white text-[#111827] border border-[#e5e7eb] hover:bg-[#f9fafb]">Call</button>
+                      <button className="py-1.5 px-3 border-none rounded-lg text-xs font-semibold cursor-pointer transition-all duration-300 inline-flex items-center gap-2 bg-white text-[#111827] border border-[#e5e7eb] hover:bg-[#f9fafb]">SMS</button>
                     </div>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
-          <div className="summary-text">Showing {foreverDonators.length} forever donators</div>
+          <div className="text-right mt-5 font-semibold text-[#111827]">Showing {foreverDonators.length} forever donators</div>
         </div>
       )}
 
       {showRequestModal && (
-        <div className="modal-overlay" onClick={() => setShowRequestModal(false)}>
-          <div className="modal" onClick={(e: React.MouseEvent<HTMLDivElement>) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2 className="modal-title">Request Blood from Other Hospital</h2>
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000]" onClick={() => setShowRequestModal(false)}>
+          <div className="bg-white rounded-lg p-[30px] max-w-[500px] w-[90%] max-h-[90vh] overflow-y-auto" onClick={(e: React.MouseEvent<HTMLDivElement>) => e.stopPropagation()}>
+            <div className="flex justify-between items-center mb-5">
+              <h2 className="text-2xl font-bold text-[#111827]">Request Blood from Other Hospital</h2>
               <button
-                className="modal-close"
+                className="bg-none border-none text-2xl cursor-pointer text-[#6b7280]"
                 onClick={() => setShowRequestModal(false)}
               >
                 ×
               </button>
             </div>
             <div>
-              <div className="form-group">
-                <label className="form-label">Hospital:</label>
-                <select className="form-select">
+              <div className="mb-5">
+                <label className="block mb-2 font-semibold text-[#111827] text-sm">Hospital:</label>
+                <select className="w-full py-2.5 px-[15px] border border-[#e5e7eb] rounded-lg text-sm bg-white">
                   <option>Select Hospital</option>
                   <option>Hospital ABC</option>
                   <option>Hospital XYZ</option>
                   <option>Hospital DEF</option>
                 </select>
               </div>
-              <div className="form-group">
-                <label className="form-label">Blood Type:</label>
-                <select className="form-select">
+              <div className="mb-5">
+                <label className="block mb-2 font-semibold text-[#111827] text-sm">Blood Type:</label>
+                <select className="w-full py-2.5 px-[15px] border border-[#e5e7eb] rounded-lg text-sm bg-white">
                   <option>Select Blood Type</option>
                   <option>O+</option>
                   <option>O-</option>
@@ -346,34 +361,34 @@ export default function RequestsPage() {
                   <option>AB-</option>
                 </select>
               </div>
-              <div className="form-group">
-                <label className="form-label">Quantity:</label>
-                <input type="number" className="form-input" placeholder="Enter quantity" min="1" />
+              <div className="mb-5">
+                <label className="block mb-2 font-semibold text-[#111827] text-sm">Quantity:</label>
+                <input type="number" className="w-full py-2.5 px-[15px] border border-[#e5e7eb] rounded-lg text-sm focus:outline-none focus:border-[#dc2626]" placeholder="Enter quantity" min="1" />
               </div>
-              <div className="form-group">
-                <label className="form-label">Urgency:</label>
-                <select className="form-select">
+              <div className="mb-5">
+                <label className="block mb-2 font-semibold text-[#111827] text-sm">Urgency:</label>
+                <select className="w-full py-2.5 px-[15px] border border-[#e5e7eb] rounded-lg text-sm bg-white">
                   <option>Normal</option>
                   <option>Urgent</option>
                   <option>Emergency</option>
                 </select>
               </div>
-              <div className="form-group">
-                <label className="form-label">Notes:</label>
+              <div className="mb-5">
+                <label className="block mb-2 font-semibold text-[#111827] text-sm">Notes:</label>
                 <textarea
-                  className="form-input"
+                  className="w-full py-2.5 px-[15px] border border-[#e5e7eb] rounded-lg text-sm focus:outline-none focus:border-[#dc2626]"
                   rows={3}
                   placeholder="Additional notes"
                 ></textarea>
               </div>
-              <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+              <div className="flex gap-2.5 justify-end">
                 <button
-                  className="btn btn-secondary"
+                  className="py-2.5 px-5 border-none rounded-lg text-sm font-semibold cursor-pointer transition-all duration-300 inline-flex items-center gap-2 bg-white text-[#111827] border border-[#e5e7eb] hover:bg-[#f9fafb]"
                   onClick={() => setShowRequestModal(false)}
                 >
                   Cancel
                 </button>
-                <button className="btn btn-primary">Send Request</button>
+                <button className="py-2.5 px-5 border-none rounded-lg text-sm font-semibold cursor-pointer transition-all duration-300 inline-flex items-center gap-2 bg-[#dc2626] text-white hover:bg-[#dc2626]-hover">Send Request</button>
               </div>
             </div>
           </div>
@@ -381,12 +396,12 @@ export default function RequestsPage() {
       )}
 
       {showDonatorModal && selectedDonator && (
-        <div className="modal-overlay" onClick={() => setShowDonatorModal(false)}>
-          <div className="modal" onClick={(e: React.MouseEvent<HTMLDivElement>) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2 className="modal-title">Request from Forever Donator</h2>
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000]" onClick={() => setShowDonatorModal(false)}>
+          <div className="bg-white rounded-lg p-[30px] max-w-[500px] w-[90%] max-h-[90vh] overflow-y-auto" onClick={(e: React.MouseEvent<HTMLDivElement>) => e.stopPropagation()}>
+            <div className="flex justify-between items-center mb-5">
+              <h2 className="text-2xl font-bold text-[#111827]">Request from Forever Donator</h2>
               <button
-                className="modal-close"
+                className="bg-none border-none text-2xl cursor-pointer text-[#6b7280]"
                 onClick={() => {
                   setShowDonatorModal(false)
                   setSelectedDonator(null)
@@ -396,52 +411,52 @@ export default function RequestsPage() {
               </button>
             </div>
             <div>
-              <div className="form-group">
-                <label className="form-label">Donator:</label>
+              <div className="mb-5">
+                <label className="block mb-2 font-semibold text-[#111827] text-sm">Donator:</label>
                 <input
                   type="text"
-                  className="form-input"
+                  className="w-full py-2.5 px-[15px] border border-[#e5e7eb] rounded-lg text-sm focus:outline-none focus:border-[#dc2626]"
                   value={selectedDonator.name}
                   readOnly
                 />
               </div>
-              <div className="form-group">
-                <label className="form-label">Phone:</label>
+              <div className="mb-5">
+                <label className="block mb-2 font-semibold text-[#111827] text-sm">Phone:</label>
                 <input
                   type="text"
-                  className="form-input"
+                  className="w-full py-2.5 px-[15px] border border-[#e5e7eb] rounded-lg text-sm focus:outline-none focus:border-[#dc2626]"
                   value={selectedDonator.phone}
                   readOnly
                 />
               </div>
-              <div className="form-group">
-                <label className="form-label">Blood Type:</label>
+              <div className="mb-5">
+                <label className="block mb-2 font-semibold text-[#111827] text-sm">Blood Type:</label>
                 <input
                   type="text"
-                  className="form-input"
+                  className="w-full py-2.5 px-[15px] border border-[#e5e7eb] rounded-lg text-sm focus:outline-none focus:border-[#dc2626]"
                   value={selectedDonator.bloodType}
                   readOnly
                 />
               </div>
-              <div className="form-group">
-                <label className="form-label">Preferred Date:</label>
-                <input type="date" className="form-input" />
+              <div className="mb-5">
+                <label className="block mb-2 font-semibold text-[#111827] text-sm">Preferred Date:</label>
+                <input type="date" className="w-full py-2.5 px-[15px] border border-[#e5e7eb] rounded-lg text-sm focus:outline-none focus:border-[#dc2626]" />
               </div>
-              <div className="form-group">
-                <label className="form-label">Preferred Time:</label>
-                <input type="time" className="form-input" />
+              <div className="mb-5">
+                <label className="block mb-2 font-semibold text-[#111827] text-sm">Preferred Time:</label>
+                <input type="time" className="w-full py-2.5 px-[15px] border border-[#e5e7eb] rounded-lg text-sm focus:outline-none focus:border-[#dc2626]" />
               </div>
-              <div className="form-group">
-                <label className="form-label">Contact Method:</label>
-                <select className="form-select">
+              <div className="mb-5">
+                <label className="block mb-2 font-semibold text-[#111827] text-sm">Contact Method:</label>
+                <select className="w-full py-2.5 px-[15px] border border-[#e5e7eb] rounded-lg text-sm bg-white">
                   <option>Phone Call</option>
                   <option>SMS</option>
                   <option>Both</option>
                 </select>
               </div>
-              <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+              <div className="flex gap-2.5 justify-end">
                 <button
-                  className="btn btn-secondary"
+                  className="py-2.5 px-5 border-none rounded-lg text-sm font-semibold cursor-pointer transition-all duration-300 inline-flex items-center gap-2 bg-white text-[#111827] border border-[#e5e7eb] hover:bg-[#f9fafb]"
                   onClick={() => {
                     setShowDonatorModal(false)
                     setSelectedDonator(null)
@@ -449,7 +464,7 @@ export default function RequestsPage() {
                 >
                   Cancel
                 </button>
-                <button className="btn btn-primary">Send Request</button>
+                <button className="py-2.5 px-5 border-none rounded-lg text-sm font-semibold cursor-pointer transition-all duration-300 inline-flex items-center gap-2 bg-[#dc2626] text-white hover:bg-[#dc2626]-hover">Send Request</button>
               </div>
             </div>
           </div>

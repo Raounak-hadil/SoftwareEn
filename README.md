@@ -1,60 +1,129 @@
-Blood Bank Management System
 
-A web-based platform that facilitates blood management and requests between hospitals, doctors, and donors. Hospitals can request blood from other hospitals, doctors can request blood for their hospitals, and donors can register to donate.
+# Blood Management System - Hospital Profile
 
-Features
-Hospital Requests
+A comprehensive blood management system built with Next.js and CSS, designed for hospital administrators to manage blood stock, doctors, requests, and donators.
 
-Hospitals can request blood from other hospitals.
+## Features
 
-Track blood type, units needed, priority, and notes.
+### Hospital Profile Pages
 
-Request status can be updated (Pending / Approved / Rejected).
+1. **Doctors Page** (`/hospital/doctors`)
+   - View all doctors in the hospital
+   - View doctor profiles with contact information
+   - Message doctors directly
+   - Add new doctors to the hospital
 
-Doctor Requests
+2. **Requests Page** (`/hospital/requests`)
+   - **Doctor Requests Tab**: View and manage blood requests from doctors
+   - **Other Hospitals Requests Tab**: View and respond to requests from other hospitals
+   - **Forever Donators Tab**: View forever donators and request blood from them
+   - Request blood from other hospitals
+   - Approve/reject requests
+   - Contact forever donators via phone or SMS
 
-Doctors can submit requests on behalf of their hospital.
+3. **Stock Page** (`/hospital/stock`)
+   - **Stock Tab**: View current blood stock by type with quantities and differences
+   - **Donators Tab**: View regular donators and schedule donations
+   - **Forever Donators Tab**: View forever donators and request blood immediately
+   - Schedule donators by date and time
+   - Contact donators (call/SMS for forever donators)
 
-Ensures urgent needs are communicated efficiently.
+## Getting Started
 
-Donor Registration
+### Prerequisites
 
-Donors can fill a form with personal info, blood type, and availability.
+- **Node.js 18+** installed ([Download here](https://nodejs.org/))
+- **npm** (comes with Node.js) or **yarn** package manager
 
-Data is stored in Supabase and used to fulfill requests.
+### Installation & Running
 
-Admin Dashboard
+1. **Open Terminal/Command Prompt** in the project directory:
+   ```bash
+   cd "C:\Users\asus\Desktop\ensia\New folder"
+   ```
 
-View all hospital requests and donor registrations.
+2. **Install dependencies** (this will install all required packages):
+   ```bash
+   npm install
+   ```
+   
+   This may take a few minutes. Wait for it to complete.
 
-Track blood inventory and request statuses.
+3. **Run the development server**:
+   ```bash
+   npm run dev
+   ```
 
-Analytics for blood type availability and urgent requests.
+4. **Open your browser** and navigate to:
+   ```
+   http://localhost:3000
+   ```
 
-Tech Stack
+   The application will automatically redirect to `/hospital/stock` page.
 
-Frontend: Next.js, React, TailwindCSS
+### Troubleshooting
 
-Backend / API: Next.js API routes
+**If you get errors about missing modules:**
+- Make sure you ran `npm install` first
+- Delete `node_modules` folder and `package-lock.json` (if exists), then run `npm install` again
 
-Database: Supabase (PostgreSQL)
+**If port 3000 is already in use:**
+- The terminal will show you a different port (like 3001)
+- Use that port instead in your browser
 
-Authentication: Supabase Auth
+**If TypeScript errors appear:**
+- These are usually just warnings and won't prevent the app from running
+- The app should still work fine in the browser
 
-Hosting / Deployment: Vercel (frontend) + Supabase (backend)
+## Project Structure
 
-Contributing
+```
+├── app/
+│   ├── globals.css          # Global styles
+│   ├── layout.tsx           # Root layout
+│   ├── page.tsx             # Home page (redirects to stock)
+│   └── hospital/
+│       ├── doctors/
+│       │   └── page.tsx     # Doctors management page
+│       ├── requests/
+│       │   └── page.tsx     # Requests management page
+│       └── stock/
+│           └── page.tsx     # Stock and donator management page
+├── components/
+│   ├── Header.tsx           # Top header component
+│   ├── Sidebar.tsx          # Navigation sidebar
+│   └── HospitalLayout.tsx   # Layout wrapper for hospital pages
+└── package.json
+```
 
-Fork the repository
+## Design Features
 
-Create a branch: git checkout -b feature/your-feature
+- Clean, modern UI matching the provided design
+- Red color scheme for primary actions and active states
+- Responsive sidebar navigation
+- Modal dialogs for forms and actions
+- Status badges for request states
+- Card-based layout for doctors
+- Table-based layout for requests and stock
 
-Commit your changes: git commit -m "Add feature"
+## Technologies Used
 
-Push: git push origin feature/your-feature
+- **Next.js 14** - React framework with App Router
+- **TypeScript** - Type safety
+- **CSS** - Custom styling matching the design
+- **React Hooks** - State management
 
-Open a Pull Request
+## Future Enhancements
 
-License
+- Backend API integration
+- Authentication and authorization
+- Real-time notifications
+- Database integration
+- Email/SMS service integration
+- Advanced filtering and search
+- Analytics and reporting
 
-MIT License
+## License
+
+This project is created for educational purposes.
+
