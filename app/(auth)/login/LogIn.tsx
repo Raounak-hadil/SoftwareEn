@@ -11,7 +11,24 @@ function setMyColor(hospital : boolean) {
 
 
 
+
 function LogIn() {
+    const [doctor, setDoctor] = useState(false);
+
+    function toDoctor() {
+        setDoctor(true);
+    }
+
+    function toHospital() {
+        setDoctor(false);
+    }
+    
+    function name(doctor : boolean) {
+        if (doctor)
+            return "Doctor";
+        else
+            return "Hospital";
+    }
 
 /*
 
@@ -40,17 +57,19 @@ const supabase = createClient();
         <>
             <div className="main">
                 <div className="choose">
-                    <button className="left" style={{backgroundColor: "#C50000"}}> Hispital </button>
-                    <button className="right" style={{backgroundColor: "#FFFFFF"}}> Doctor </button>
+                    <button className="left"  onClick={toHospital} style={{backgroundColor: setMyColor(!doctor), color: setMyColor(doctor)}}> Hispital </button>
+                    <button className="right" onClick={toDoctor} style={{backgroundColor: setMyColor(doctor), color: setMyColor(!doctor)}}> Doctor </button>
                 </div>
                 <div className="mainRow">
-                    <h1 className="Hospital">Hospital</h1>
+                    <h1 className="Hospital">
+                        {name(doctor)}
+                    </h1>
                     <h6 className="Login">Login</h6>
                 </div>
                 <form>
             
                     <input
-                        placeholder="  Email"
+                        placeholder="Email"
                         type="email"
                         //onChange={(e) => setEmail(e.target.value)}
                         id="username"
@@ -61,7 +80,7 @@ const supabase = createClient();
                     <div style={{height: "40px"}}></div>
                
                         <input
-                            placeholder="  Password"
+                            placeholder="Password"
                             type="password"
                             //onChange={(e) => setPassword(e.target.value)}
                             id="password"

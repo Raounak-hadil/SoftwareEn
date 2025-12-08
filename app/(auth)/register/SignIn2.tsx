@@ -17,9 +17,10 @@ const customStyles = {
     boxShadow: "-2px 2px 2px 2px #C50000",
     border: "0px",
     fontSize: "20px",
-    padding: "20px",
+    padding: "17px",
     marginBottom: "27px",
     fontFamily: "'Times New Roman', Times, serif",
+    color: "#C50000",
   }),
   placeholder: (provided: any) => ({
     ...provided,
@@ -27,6 +28,17 @@ const customStyles = {
     marginBottom: "10px",
     opacity: 1,
     fontWeight: 100
+  }),
+  menu: (provided: any) => ({
+    ...provided,
+    color: "#C50000",
+    top: "50px",
+    opacity: 1,
+    fontWeight: 600
+  }),
+  input: (provided: any, state: any) => ({
+    ...provided,
+    color: "#C50000", // Change 'red' to your desired color
   }),
 };
 
