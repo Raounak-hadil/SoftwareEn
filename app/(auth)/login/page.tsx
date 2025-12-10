@@ -1,11 +1,10 @@
 import LogIn from './LogIn';
+import '../../../assets/styles/LogIn.css';
 
 export default function LogInPage() {
 	return (
-		<html>
-			<body>
+			<div className="body">
 				<LogIn />
-			</body>
-		</html>
+			</div>
 	);
 }
