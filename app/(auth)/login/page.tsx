@@ -1,11 +1,11 @@
-import LogIn from './LogIn.tsx';
+import LogIn from './LogIn';
 
 export default function LogInPage() {
 	return (
 		<html>
-		<body>
-		<LogIn />
-		</body>
+			<body>
+				<LogIn />
+			</body>
 		</html>
 	);
 }

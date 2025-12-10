@@ -108,6 +108,10 @@ button {
     opacity: 1;
 }
 
+input[type="date"] {
+  color: #cd8181;
+}
+
 .Forgot {
     color:#C50000;
 }
