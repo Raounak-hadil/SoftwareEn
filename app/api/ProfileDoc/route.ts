@@ -13,8 +13,27 @@ export async function GET(req: NextRequest) {
 
     const user = authResult.user;
 
-    // Optional email override via query string, otherwise use authenticated email
+    // Support two modes:
+    // - ?hospital_id=...  -> return all doctors for that hospital (admin use)
+    // - ?email=... or default authenticated user email -> return single doctor profile + sessions
     const { searchParams } = new URL(req.url);
+    const hospitalId = searchParams.get('hospital_id');
+
+    if (hospitalId) {
+      // return list of doctors for the hospital
+      const { data: doctors, error } = await supabase
+        .from('doctors')
+        .select('*')
+        .eq('hospital_id', hospitalId);
+
+      if (error) {
+        return NextResponse.json({ error: error.message }, { status: 400 });
+      }
+
+      return NextResponse.json({ success: true, doctors: doctors || [] }, { status: 200 });
+    }
+
+    // Optional email override via query string, otherwise use authenticated email
     const emailFilter = searchParams.get('email');
     const emailToUse = emailFilter || user.email;
 

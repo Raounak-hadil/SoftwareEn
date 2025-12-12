@@ -31,7 +31,7 @@ export function Hero(): JSX.Element {
               scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into
               electronic typesetting, remaining essentially unchanged.
             </p>
-            <Link href="/admin-dashboard" className="w-full sm:w-fit">
+            <Link href="/form" className="w-full sm:w-fit">
               <span className="inline-flex w-full sm:w-auto">
                 <button
                   type="button"

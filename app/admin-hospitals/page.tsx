@@ -9,6 +9,7 @@ type Hospital = {
   name: string;
   address: string;
   type: 'Public' | 'Private';
+  apiId?: string | number;
 };
 
 type StockUnit = {
@@ -34,10 +35,7 @@ const INITIAL_HOSPITALS: Hospital[] = [
 ];
 
 const INITIAL_STOCK: StockUnit[] = [
-  { type: 'O+', description: 'Children Toy', quantity: 2, requests: 5, difference: -3 },
-  { type: 'O-', description: 'Makeup', quantity: 0, requests: 2, difference: -2 },
-  { type: 'A+', description: 'Asus Laptop', quantity: 5, requests: 4, difference: 1 },
-  { type: 'B-', description: 'Iphone X', quantity: 4, requests: 4, difference: 0 },
+
 ];
 
 const INITIAL_DOCTORS: Doctor[] = [
@@ -57,6 +55,7 @@ const INITIAL_DOCTORS: Doctor[] = [
 
 const AdminHospitals = () => {
   const [selectedHospital, setSelectedHospital] = useState<Hospital | null>(null);
+  console.log('selectedHospital:', selectedHospital);
   const [activeTab, setActiveTab] = useState<'stock' | 'doctors'>('stock');
   const [showAddDoctorForm, setShowAddDoctorForm] = useState(false);
   const [showAddHospitalForm, setShowAddHospitalForm] = useState(false);
@@ -68,9 +67,14 @@ const AdminHospitals = () => {
   const [newHospital, setNewHospital] = useState({ name: '', address: '', type: 'Public' as Hospital['type'] });
   const [newUnit, setNewUnit] = useState({ type: '', description: '', quantity: '', requests: '' });
 
-  const [hospitals, setHospitals] = useState<Hospital[]>(INITIAL_HOSPITALS);
+  const [hospitals, setHospitals] = useState<Hospital[]>([]);
+  const [loadingHospitals, setLoadingHospitals] = useState<boolean>(true);
+  const [loadingStockData, setLoadingStockData] = useState<boolean>(false);
   const [stockData, setStockData] = useState<StockUnit[]>(INITIAL_STOCK);
+  const [rawApiStock, setRawApiStock] = useState<any[] | null>(null);
   const [doctors, setDoctors] = useState<Doctor[]>(INITIAL_DOCTORS);
+  const [confirmDeleteHospital, setConfirmDeleteHospital] = useState<Hospital | null>(null);
+  const [deleting, setDeleting] = useState<boolean>(false);
 
   useEffect(() => {
     const handler = (event: Event): void => {
@@ -87,6 +91,116 @@ const AdminHospitals = () => {
 
     return () => window.removeEventListener('adminSearch', handler as EventListener);
   }, []);
+
+  useEffect(() => {
+    const fetchHospitals = async () => {
+      setLoadingHospitals(true);
+      try {
+        const res = await fetch('/api/hospitals_list');
+        if (!res.ok) {
+          console.warn('Failed to fetch hospitals:', res.status);
+          setHospitals(INITIAL_HOSPITALS);
+          return;
+        }
+        const json = await res.json();
+        const data = Array.isArray(json?.hospitals) ? json.hospitals : [];
+        const mapped: Hospital[] = data.map((h: any) => ({
+          id: String(h.hosname ? (h.hosid ?? h.id ?? '') : (h.id ?? h.hospital_id ?? '')) || String(h.id ?? h.hospital_id ?? ''),
+          name: h.hosname ?? h.name ?? h.hos_name ?? '',
+          address: h.address ?? h.adress ?? h.location ?? '',
+          type: (h.type === 'Private' || h.type === 'private') ? 'Private' : 'Public',
+          apiId: h.id ?? h.hospital_id ?? h.hosid ?? h.hos_id ?? h.hosid ?? null,
+        }));
+        setHospitals(mapped.length ? mapped : INITIAL_HOSPITALS);
+      } catch (err) {
+        console.error('Error fetching hospitals:', err);
+        setHospitals(INITIAL_HOSPITALS);
+      } finally {
+        setLoadingHospitals(false);
+      }
+    };
+
+    fetchHospitals();
+  }, []);
+
+  useEffect(() => {
+    if (!selectedHospital) return;
+    const fetchStockForHospital = async () => {
+      setLoadingStockData(true);
+      try {
+        const hospitalIdentifier = selectedHospital.apiId ?? selectedHospital.id;
+        console.debug('fetching byHospital for', { selectedHospitalId: selectedHospital.id, hospitalIdentifier });
+        const res = await fetch(`/api/hospital/stock/byHospital?hospital_id=${encodeURIComponent(String(hospitalIdentifier))}`);
+        if (!res.ok) {
+          console.warn('Failed to fetch hospital stock for', selectedHospital.id, res.status);
+          setStockData(INITIAL_STOCK);
+          return;
+        }
+        const json = await res.json();
+        if (json?.success === false) {
+          console.warn('API returned error for hospital stock:', json.error);
+          setStockData(INITIAL_STOCK);
+          return;
+        }
+        const apiStock = Array.isArray(json?.stock) ? json.stock : [];
+        console.debug('byHospital apiStock length', apiStock.length, apiStock);
+        const mapped = apiStock.map((s: any, i: number) => {
+          const quantity = Number(s.quantity ?? s.qty ?? s.qte ?? s.count ?? s.available ?? s.quantity_available ?? 0) || 0;
+          const requests = Number(s.requests ?? s.requested ?? s.request_count ?? 0) || 0;
+          const type = String(s.blood_type ?? s.bloodType ?? s.type ?? s.btype ?? 'N/A');
+          const description = String(s.description ?? s.desc ?? s.notes ?? s.note ?? '');
+          return {
+            type,
+            description,
+            quantity,
+            requests,
+            difference: quantity - requests,
+          };
+        });
+        console.debug('mapped stock', mapped);
+        setRawApiStock(apiStock);
+        setStockData(mapped.length ? mapped : INITIAL_STOCK);
+      } catch (err) {
+        console.error('Error fetching hospital stock by id:', err);
+        setStockData(INITIAL_STOCK);
+      } finally {
+        setLoadingStockData(false);
+      }
+    };
+
+    fetchStockForHospital();
+  }, [selectedHospital]);
+
+  useEffect(() => {
+    console.debug('stockData state changed', stockData);
+  }, [stockData]);
+
+
+  const handleConfirmDelete = async () => {
+    if (!confirmDeleteHospital) return;
+    setDeleting(true);
+    try {
+      const res = await fetch('/api/DeleteHosp', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: confirmDeleteHospital.id }),
+      });
+      const json = await res.json();
+      if (!res.ok) {
+        console.error('DeleteHosp failed', json);
+        alert('Failed to delete hospital');
+        return;
+      }
+      // remove from local state
+      setHospitals((prev) => prev.filter((h) => h.id !== confirmDeleteHospital.id));
+      setConfirmDeleteHospital(null);
+    } catch (err) {
+      console.error('Error deleting hospital:', err);
+      alert('Error deleting hospital');
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   const filteredHospitals = useMemo(() => {
     if (!searchQuery.trim()) return hospitals;
@@ -165,15 +279,19 @@ const AdminHospitals = () => {
               </span>
             </div>
             <p className='text-xs text-gray-600 mb-3'>{hospital.address}</p>
-            <div className='flex gap-2 flex-wrap'>
+              <div className='flex gap-2 flex-wrap'>
               <button
                 type='button'
                 onClick={() => setSelectedHospital(hospital)}
                 className='flex-1 px-3 py-2 bg-[#C50000] text-white text-xs rounded hover:bg-[#A00000] transition-colors'
               >
-                Modify
+                Discover
               </button>
-              <button type='button' className='flex-1 px-3 py-2 bg-red-600 text-white text-xs rounded hover:bg-red-700 transition-colors'>
+              <button
+                type='button'
+                onClick={() => setConfirmDeleteHospital(hospital)}
+                className='flex-1 px-3 py-2 bg-red-600 text-white text-xs rounded hover:bg-red-700 transition-colors'
+              >
                 Delete
               </button>
             </div>
@@ -215,10 +333,14 @@ const AdminHospitals = () => {
                       onClick={() => setSelectedHospital(hospital)}
                       className='px-3 py-1 bg-[#C50000] text-white text-xs rounded hover:bg-[#A00000] transition-colors'
                     >
-                      Modify ?
+                      Discover
                     </button>
-                    <button type='button' className='px-3 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700 transition-colors'>
-                      Delete ?
+                    <button
+                      type='button'
+                      onClick={() => setConfirmDeleteHospital(hospital)}
+                      className='px-3 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700 transition-colors'
+                    >
+                      Delete
                     </button>
                   </div>
                 </td>
@@ -232,15 +354,19 @@ const AdminHospitals = () => {
 
   const renderStockTab = () => (
     <>
-      <div className='flex justify-end mb-4'>
-        <button type='button' onClick={() => setShowAddUnitForm(true)} className='px-3 sm:px-4 py-2 text-sm sm:text-base bg-[#C50000] text-white rounded-lg font-medium hover:bg-[#A00000] transition-colors'>
-          Add New Unit
-        </button>
-      </div>
       <div className='bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden'>
+        {/* Debug panel: raw API and mapped stock (temporary) */}
+        {rawApiStock && (
+          <div className='p-4 border-b border-gray-200 bg-yellow-50 text-xs text-gray-700'>
+            <div className='font-medium mb-2'>Debug API response (raw):</div>
+            <pre className='whitespace-pre-wrap max-h-40 overflow-auto text-[11px]'>{JSON.stringify(rawApiStock, null, 2)}</pre>
+          </div>
+        )}
         {/* Mobile Card View */}
         <div className='block md:hidden divide-y divide-gray-200'>
-          {stockData.map((unit, index) => (
+          {stockData.length === 0 && !loadingStockData ? (
+            <div className='p-8 text-center text-gray-500'>No stock found for this hospital.</div>
+          ) : stockData.map((unit, index) => (
             <div key={`${unit.type}-${index}`} className='p-4 bg-white hover:bg-gray-50'>
               <div className='flex justify-between items-start mb-2'>
                 <span className='text-sm font-semibold text-gray-900'>{unit.type}</span>
@@ -390,34 +516,7 @@ const AdminHospitals = () => {
             {activeTab === 'stock' ? renderStockTab() : renderDoctorsTab()}
 
             {/* Modals */}
-            {showAddUnitForm && (
-              <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto'>
-                <div className='bg-white rounded-lg max-w-md w-full my-4 max-h-[90vh] overflow-y-auto'>
-                  <div className='p-4 sm:p-6 border-b border-gray-200 flex items-center justify-between sticky top-0 bg-white'>
-                    <h2 className='text-xl sm:text-2xl font-bold text-gray-900'>Add New Unit</h2>
-                    <button type='button' onClick={() => setShowAddUnitForm(false)} className='p-2 hover:bg-gray-100 rounded-full transition-colors'>
-                      <svg className='w-5 h-5 sm:w-6 sm:h-6 text-gray-600' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                        <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M6 18L18 6M6 6l12 12' />
-                      </svg>
-                    </button>
-                  </div>
-                  <form onSubmit={handleAddUnit} className='p-4 sm:p-6 space-y-4'>
-                    <input type='text' value={newUnit.type} onChange={(e) => setNewUnit((prev) => ({ ...prev, type: e.target.value }))} placeholder='Blood type' className='w-full px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C50000]' required />
-                    <input type='text' value={newUnit.description} onChange={(e) => setNewUnit((prev) => ({ ...prev, description: e.target.value }))} placeholder='Description' className='w-full px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C50000]' />
-                    <input type='number' value={newUnit.quantity} onChange={(e) => setNewUnit((prev) => ({ ...prev, quantity: e.target.value }))} placeholder='Quantity' className='w-full px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C50000]' required />
-                    <input type='number' value={newUnit.requests} onChange={(e) => setNewUnit((prev) => ({ ...prev, requests: e.target.value }))} placeholder='Number of requests' className='w-full px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C50000]' />
-                    <div className='flex flex-col sm:flex-row gap-3 sm:gap-4 pt-4'>
-                      <button type='submit' className='flex-1 px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base bg-[#C50000] text-white rounded-lg font-medium hover:bg-[#A00000] transition-colors'>
-                        Add Unit
-                      </button>
-                      <button type='button' onClick={() => setShowAddUnitForm(false)} className='flex-1 px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors'>
-                        Cancel
-                      </button>
-                    </div>
-                  </form>
-                </div>
-              </div>
-            )}
+            {/* Add New Unit form removed per request */}
 
             {showAddDoctorForm && (
               <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto'>
@@ -451,43 +550,28 @@ const AdminHospitals = () => {
           <div className='p-4 sm:p-6 lg:p-8 bg-gray-50 min-h-screen'>
             <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 sm:mb-8'>
               <h1 className='text-2xl sm:text-3xl font-bold text-gray-900'>Hospitals</h1>
-              <button type='button' onClick={() => setShowAddHospitalForm(true)} className='w-full sm:w-auto px-4 py-2 bg-[#C50000] text-white rounded-lg font-medium hover:bg-[#A00000] transition-colors text-sm sm:text-base'>
-                Add New Hospital
-              </button>
             </div>
 
-            {renderHospitalsTable()}
+            {loadingHospitals ? (
+              <div className='p-6 text-center text-gray-500'>Loading hospitals…</div>
+            ) : (
+              renderHospitalsTable()
+            )}
 
-            {showAddHospitalForm && (
-              <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto'>
-                <div className='bg-white rounded-lg max-w-md w-full my-4 max-h-[90vh] overflow-y-auto'>
-                  <div className='p-4 sm:p-6 border-b border-gray-200 flex items-center justify-between sticky top-0 bg-white'>
-                    <h2 className='text-xl sm:text-2xl font-bold text-gray-900'>Add New Hospital</h2>
-                    <button type='button' onClick={() => setShowAddHospitalForm(false)} className='p-2 hover:bg-gray-100 rounded-full transition-colors'>
-                      <svg className='w-5 h-5 sm:w-6 sm:h-6 text-gray-600' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                        <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M6 18L18 6M6 6l12 12' />
-                      </svg>
-                    </button>
+            {confirmDeleteHospital && (
+              <div className='fixed inset-0 bg-black/50 flex items-center justify-center z-[1000]' onClick={() => setConfirmDeleteHospital(null)}>
+                <div className='bg-white rounded-lg p-6 w-full max-w-md' onClick={(e) => e.stopPropagation()}>
+                  <h3 className='text-lg font-semibold mb-4'>Confirm Delete</h3>
+                  <p className='text-sm text-gray-600 mb-4'>Are you sure you want to delete <strong>{confirmDeleteHospital.name}</strong>? This action cannot be undone.</p>
+                  <div className='flex gap-2 justify-end'>
+                    <button className='px-4 py-2 border rounded text-sm' onClick={() => setConfirmDeleteHospital(null)} disabled={deleting}>Cancel</button>
+                    <button className='px-4 py-2 bg-red-600 text-white rounded text-sm' onClick={handleConfirmDelete} disabled={deleting}>{deleting ? 'Deleting…' : 'Delete'}</button>
                   </div>
-                  <form onSubmit={handleAddHospital} className='p-4 sm:p-6 space-y-4'>
-                    <input type='text' value={newHospital.name} onChange={(e) => setNewHospital((prev) => ({ ...prev, name: e.target.value }))} placeholder='Hospital name' className='w-full px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C50000]' required />
-                    <input type='text' value={newHospital.address} onChange={(e) => setNewHospital((prev) => ({ ...prev, address: e.target.value }))} placeholder='Address' className='w-full px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C50000]' required />
-                    <select value={newHospital.type} onChange={(e) => setNewHospital((prev) => ({ ...prev, type: e.target.value as Hospital['type'] }))} className='w-full px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C50000]'>
-                      <option value='Public'>Public</option>
-                      <option value='Private'>Private</option>
-                    </select>
-                    <div className='flex flex-col sm:flex-row gap-3 sm:gap-4 pt-4'>
-                      <button type='submit' className='flex-1 px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base bg-[#C50000] text-white rounded-lg font-medium hover:bg-[#A00000] transition-colors'>
-                        Add Hospital
-                      </button>
-                      <button type='button' onClick={() => setShowAddHospitalForm(false)} className='flex-1 px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors'>
-                        Cancel
-                      </button>
-                    </div>
-                  </form>
                 </div>
               </div>
             )}
+
+            {/* Add Hospital feature removed per request */}
           </div>
         )}
       </main>

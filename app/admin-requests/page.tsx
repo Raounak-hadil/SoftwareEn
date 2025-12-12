@@ -14,16 +14,7 @@ type RequestRow = {
 };
 
 const REQUESTS: RequestRow[] = [
-  { from: 'CHU Mustapha', forHospital: 'CHU Mustapha', requestedBy: 'Riwane Messad', date: '04 Sep 2019', type: 'O-', status: 'Completed' },
-  { from: 'CHU Mustapha', forHospital: 'CHU Mustapha', requestedBy: 'Riwane Messad', date: '28 May 2019', type: 'O-', status: 'Processing' },
-  { from: 'CHU Mustapha', forHospital: 'CHU Mustapha', requestedBy: 'Riwane Messad', date: '23 Nov 2019', type: 'O-', status: 'Rejected' },
-  { from: 'CHU Mustapha', forHospital: 'CHU Mustapha', requestedBy: 'Riwane Messad', date: '06 Feb 2019', type: 'O-', status: 'On Hold' },
-  { from: 'CHU Mustapha', forHospital: 'CHU Mustapha', requestedBy: 'Riwane Messad', date: '29 Jul 2019', type: 'O-', status: 'In Transit' },
-  { from: 'CHU Mustapha', forHospital: 'CHU Mustapha', requestedBy: 'Riwane Messad', date: '03 Jul 2019', type: 'O-', status: 'In Transit' },
-  { from: 'CHU Mustapha', forHospital: 'CHU Mustapha', requestedBy: 'Riwane Messad', date: '15 Jun 2019', type: 'O-', status: 'Completed' },
-  { from: 'CHU Mustapha', forHospital: 'CHU Mustapha', requestedBy: 'Riwane Messad', date: '02 Jun 2019', type: 'O-', status: 'Completed' },
-  { from: 'CHU Mustapha', forHospital: 'CHU Mustapha', requestedBy: 'Riwane Messad', date: '15 May 2019', type: 'O-', status: 'Completed' },
-  { from: 'CHU Mustapha', forHospital: 'CHU Mustapha', requestedBy: 'Riwane Messad', date: '07 May 2019', type: 'O-', status: 'Completed' },
+
 ];
 
 const ITEMS_PER_PAGE = 10;
@@ -31,6 +22,8 @@ const ITEMS_PER_PAGE = 10;
 const AdminRequests = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
+  const [requests, setRequests] = useState<RequestRow[]>(REQUESTS);
+  const [loadingRequests, setLoadingRequests] = useState<boolean>(true);
 
   useEffect(() => {
     const handler = (event: Event): void => {
@@ -44,12 +37,44 @@ const AdminRequests = () => {
   }, []);
 
   const filteredRequests = useMemo(() => {
-    if (!searchQuery.trim()) return REQUESTS;
+    if (!searchQuery.trim()) return requests;
     const query = searchQuery.toLowerCase();
-    return REQUESTS.filter((request) =>
+    return requests.filter((request) =>
       [request.from, request.forHospital, request.requestedBy, request.status].some((field) => field.toLowerCase().includes(query)),
     );
-  }, [searchQuery]);
+  }, [searchQuery, requests]);
+
+  useEffect(() => {
+    const fetchRequests = async () => {
+      setLoadingRequests(true);
+      try {
+        const res = await fetch('/api/HospitalReq');
+        if (!res.ok) {
+          console.warn('Failed to fetch hospital requests:', res.status);
+          setRequests(REQUESTS);
+          return;
+        }
+        const json = await res.json();
+        const data = Array.isArray(json?.data) ? json.data : [];
+        const mapped: RequestRow[] = data.map((r: any) => ({
+          from: String(r.hospital_from_id ?? r.from ?? ''),
+          forHospital: String(r.hospital_to_id ?? r.for ?? ''),
+          requestedBy: String(r.requested_by ?? r.requestedBy ?? r.created_by ?? '—'),
+          date: r.date ? new Date(r.date).toLocaleDateString() : (r.created_at ? new Date(r.created_at).toLocaleDateString() : ''),
+          type: String(r.blood_type ?? r.type ?? ''),
+          status: String(r.status ?? 'Pending'),
+        }));
+        setRequests(mapped.length ? mapped : REQUESTS);
+      } catch (err) {
+        console.error('Error fetching HospitalReq:', err);
+        setRequests(REQUESTS);
+      } finally {
+        setLoadingRequests(false);
+      }
+    };
+
+    fetchRequests();
+  }, []);
 
   const totalPages = Math.max(1, Math.ceil(filteredRequests.length / ITEMS_PER_PAGE));
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -108,7 +133,7 @@ const AdminRequests = () => {
               <table className='w-full min-w-[720px]'>
                 <thead>
                   <tr className='bg-gray-50 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider'>
-                    {['From', 'For', 'Requested by', 'Date', 'Type', 'Status'].map((header) => (
+                    {['From', 'For', 'Date', 'Type', 'Status'].map((header) => (
                       <th key={header} className='px-4 lg:px-6 py-3'>
                         {header}
                       </th>
@@ -118,9 +143,11 @@ const AdminRequests = () => {
                 <tbody className='divide-y divide-gray-100'>
                   {pageItems.map((request, index) => (
                     <tr key={`${request.requestedBy}-${index}`} className='hover:bg-gray-50'>
-                      <td className='px-4 lg:px-6 py-4 text-sm text-gray-900'>{request.from}</td>
+                      <td className='px-4 lg:px-6 py-4 text-sm'>
+                        <div className='text-gray-900 font-medium'>{request.from}</div>
+                        <div className='text-xs text-gray-500 mt-1'>{request.requestedBy}</div>
+                      </td>
                       <td className='px-4 lg:px-6 py-4 text-sm text-gray-900'>{request.forHospital}</td>
-                      <td className='px-4 lg:px-6 py-4 text-sm text-gray-900'>{request.requestedBy}</td>
                       <td className='px-4 lg:px-6 py-4 text-sm text-gray-600'>{request.date}</td>
                       <td className='px-4 lg:px-6 py-4 text-sm text-gray-600'>{request.type}</td>
                       <td className='px-4 lg:px-6 py-4 text-sm font-semibold text-[#C50000]'>{request.status}</td>

@@ -6,7 +6,7 @@ export async function POST(request: NextRequest) {
   try {
     const validBloodTypes = ['A+', 'B+', 'O+', 'AB+', 'A-', 'B-', 'O-', 'AB-'];
     const body = await request.json();
-    let { first_name, last_name, phone_num, email, last_donation, age, blood_type, preferred_date, forever, hospital_name } = body;
+    let { first_name, last_name, phone_num, email, last_donation, age, blood_type, preferred_date, forever, hospital_name, hospital_id } = body;
 
     // Validation
     if (age < 19 || age > 100) {
@@ -23,21 +23,23 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get hospital id by name
-    const { data: hospital, error: hospitalError } = await supabase
-      .from('hospitals')
-      .select('id')
-      .eq('hosname', hospital_name)
-      .single();
+    // If frontend provided hospital_id prefer it; otherwise lookup by name
+    if (!hospital_id) {
+      const { data: hospital, error: hospitalError } = await supabase
+        .from('hospitals')
+        .select('id')
+        .eq('hosname', hospital_name)
+        .single();
 
-    if (hospitalError || !hospital) {
-      return NextResponse.json(
-        { error: 'Invalid hospital' },
-        { status: 400 }
-      );
+      if (hospitalError || !hospital) {
+        return NextResponse.json(
+          { error: 'Invalid hospital' },
+          { status: 400 }
+        );
+      }
+
+      hospital_id = hospital.id;
     }
-
-    const hospital_id = hospital.id;
     forever = forever ? 'Yes' : 'No';
     const status = 'Pending';
 

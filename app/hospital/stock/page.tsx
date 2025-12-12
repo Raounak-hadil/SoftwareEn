@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import HospitalLayout from '@/components/HospitalLayout'
 
 // Correct Stock schema and mockStock
@@ -11,16 +11,6 @@ interface StockUnit {
   quantity: number;
   date: string;
 }
-const mockStock: StockUnit[] = [
-  { id: 1, hospital_id: 1, blood_type: 'O+', quantity: 25, date: '2024-09-15' },
-  { id: 2, hospital_id: 1, blood_type: 'O-', quantity: 15, date: '2024-09-16' },
-  { id: 3, hospital_id: 1, blood_type: 'A+', quantity: 30, date: '2024-09-17' },
-  { id: 4, hospital_id: 1, blood_type: 'A-', quantity: 12, date: '2024-09-18' },
-  { id: 5, hospital_id: 1, blood_type: 'B+', quantity: 18, date: '2024-09-19' },
-  { id: 6, hospital_id: 1, blood_type: 'B-', quantity: 8, date: '2024-09-20' },
-  { id: 7, hospital_id: 1, blood_type: 'AB+', quantity: 10, date: '2024-09-21' },
-  { id: 8, hospital_id: 1, blood_type: 'AB-', quantity: 5, date: '2024-09-22' },
-];
 
 const mockDonators = [
   {
@@ -88,7 +78,8 @@ interface Donator {
 
 export default function StockPage() {
   const [activeTab, setActiveTab] = useState<'stock' | 'donators' | 'forever-donators'>('stock')
-  const [stock, setStock] = useState<StockUnit[]>(mockStock)
+  const [stock, setStock] = useState<StockUnit[]>([])
+  const [loading, setLoading] = useState<boolean>(true)
   const [donators] = useState<Donator[]>(mockDonators)
   const [showAddModal, setShowAddModal] = useState(false)
   const [newStock, setNewStock] = useState<Omit<StockUnit, 'id'> >({ hospital_id: 1, blood_type: '', quantity: 0, date: '' })
@@ -124,6 +115,38 @@ export default function StockPage() {
       setEditStock(null)
     }
   }
+
+  useEffect(() => {
+    // Fetch actual stock for the authenticated hospital and replace mock data
+    const fetchStock = async () => {
+      try {
+        setLoading(true)
+        const res = await fetch('/api/hospital/stock/myStock', { credentials: 'include' });
+        if (!res.ok) {
+          console.warn('Could not fetch hospital stock:', res.status);
+          return;
+        }
+        const json = await res.json();
+        // API returns { success: true, stock: [...] }
+        if (json?.stock && Array.isArray(json.stock)) {
+          setStock(json.stock.map((s: any, i: number) => ({
+            id: s.id ?? i + 1,
+            hospital_id: s.hospital_id ?? s.hospitalId ?? 0,
+            blood_type: s.blood_type ?? s.bloodType ?? s.type ?? '',
+            quantity: Number(s.quantity ?? s.qty ?? 0),
+            date: s.date ?? s.created_at ?? ''
+          })));
+        }
+      } catch (err) {
+        console.error('Error fetching hospital stock:', err);
+      }
+      finally {
+        setLoading(false)
+      }
+    };
+
+    fetchStock();
+  }, []);
 
   return (
     <HospitalLayout>
@@ -172,38 +195,44 @@ export default function StockPage() {
 
       {activeTab === 'stock' && (
         <div className="bg-white rounded-lg overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.1)]">
-          <table className="w-full border-collapse">
-            <thead className="bg-[#f9fafb]">
-              <tr>
-                <th className="p-[15px] text-left font-semibold text-[#111827] text-sm uppercase border-b-2 border-[#e5e7eb]">Hospital ID</th>
-                <th className="p-[15px] text-left font-semibold text-[#111827] text-sm uppercase border-b-2 border-[#e5e7eb]">Blood Type</th>
-                <th className="p-[15px] text-left font-semibold text-[#111827] text-sm uppercase border-b-2 border-[#e5e7eb]">Quantity</th>
-                <th className="p-[15px] text-left font-semibold text-[#111827] text-sm uppercase border-b-2 border-[#e5e7eb]">Date</th>
-                <th className="p-[15px] text-left font-semibold text-[#111827] text-sm uppercase border-b-2 border-[#e5e7eb]">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {stock.map((item) => (
-                <tr key={item.id} className="hover:bg-[#f9fafb]">
-                  <td className="p-[15px] border-b border-[#e5e7eb] text-[#111827] text-sm">{item.hospital_id}</td>
-                  <td className="p-[15px] border-b border-[#e5e7eb] text-[#111827] text-sm">{item.blood_type}</td>
-                  <td className="p-[15px] border-b border-[#e5e7eb] text-[#111827] text-sm">{item.quantity}</td>
-                  <td className="p-[15px] border-b border-[#e5e7eb] text-[#111827] text-sm">{item.date}</td>
-                  <td className="p-[15px] border-b border-[#e5e7eb] text-[#111827] text-sm">
-                    <div className="flex gap-2">
-                      <button 
-                        className="py-1.5 px-3 border-none rounded-lg text-xs font-semibold cursor-pointer transition-all duration-300 inline-flex items-center gap-2 bg-[#dc2626] text-white hover:bg-[#dc2626]-hover" 
-                        onClick={() => handleUpdateClick(item)}
-                      >
-                        Update
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          <div className="text-right mt-5 font-semibold text-[#111827]">Total = {totalUnits} Units</div>
+          {loading ? (
+            <div className="p-8 text-center text-gray-500">Loading stock…</div>
+          ) : (
+            <>
+              <table className="w-full border-collapse">
+                <thead className="bg-[#f9fafb]">
+                  <tr>
+                    <th className="p-[15px] text-left font-semibold text-[#111827] text-sm uppercase border-b-2 border-[#e5e7eb]">Hospital ID</th>
+                    <th className="p-[15px] text-left font-semibold text-[#111827] text-sm uppercase border-b-2 border-[#e5e7eb]">Blood Type</th>
+                    <th className="p-[15px] text-left font-semibold text-[#111827] text-sm uppercase border-b-2 border-[#e5e7eb]">Quantity</th>
+                    <th className="p-[15px] text-left font-semibold text-[#111827] text-sm uppercase border-b-2 border-[#e5e7eb]">Date</th>
+                    <th className="p-[15px] text-left font-semibold text-[#111827] text-sm uppercase border-b-2 border-[#e5e7eb]">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {stock.map((item) => (
+                    <tr key={item.id} className="hover:bg-[#f9fafb]">
+                      <td className="p-[15px] border-b border-[#e5e7eb] text-[#111827] text-sm">{item.hospital_id}</td>
+                      <td className="p-[15px] border-b border-[#e5e7eb] text-[#111827] text-sm">{item.blood_type}</td>
+                      <td className="p-[15px] border-b border-[#e5e7eb] text-[#111827] text-sm">{item.quantity}</td>
+                      <td className="p-[15px] border-b border-[#e5e7eb] text-[#111827] text-sm">{item.date}</td>
+                      <td className="p-[15px] border-b border-[#e5e7eb] text-[#111827] text-sm">
+                        <div className="flex gap-2">
+                          <button 
+                            className="py-1.5 px-3 border-none rounded-lg text-xs font-semibold cursor-pointer transition-all duration-300 inline-flex items-center gap-2 bg-[#dc2626] text-white hover:bg-[#dc2626]-hover" 
+                            onClick={() => handleUpdateClick(item)}
+                          >
+                            Update
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <div className="text-right mt-5 font-semibold text-[#111827]">Total = {totalUnits} Units</div>
+            </>
+          )}
         </div>
       )}
 

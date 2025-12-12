@@ -40,6 +40,29 @@ function LogIn() {
       }
     } else {
       console.log("Hospital login flow");
+      try {
+        const res = await fetch('/api/auth/hospital/signin', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: username, password })
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          alert('Hospital Logged in successfully');
+          console.log('Hospital Token:', data.token);
+
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('hospital_token', data.token); // distinct key if needed, or just 'token'
+          }
+          router.push('/hospital/stock');
+        } else {
+          alert(data.error || 'Login failed');
+        }
+      } catch (e) {
+        console.error(e);
+        alert('An error occurred during hospital login');
+      }
     }
   };
 

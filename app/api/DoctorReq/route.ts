@@ -11,20 +11,33 @@ export async function GET(request: NextRequest) {
       return authResult.response!;
     }
 
-    const doctorId = authResult.user.id;
+    const userEmail = authResult.user.email;
 
-    if (!doctorId) {
+    if (!userEmail) {
       return NextResponse.json(
-        { error: 'Authenticated doctor has no id in token' },
+        { error: 'Authenticated user has no email' },
         { status: 400 },
       );
     }
+    console.log('Authenticated user email:', userEmail);
 
-    // Fetch requests only for this doctor (doctors_requests.doctor_id)
+    // 1. Find doctor by email
+    const { data: doctor, error: doctorError } = await supabase
+      .from('doctors')
+      .select('id')
+      .eq('email', userEmail)
+      .single();
+
+    if (doctorError || !doctor) {
+      return NextResponse.json({ error: 'Doctor not found' }, { status: 404 });
+    }
+
+    // 2. Fetch requests for this doctor
     const { data, error } = await supabase
       .from('doctors_requests')
       .select('*')
-      .eq('doctor_id', doctorId);
+      .eq('doctor_id', doctor.id)
+      .order('request_date', { ascending: false });
 
     if (error) {
       return NextResponse.json(
