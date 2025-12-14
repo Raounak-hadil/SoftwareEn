@@ -1,216 +1,129 @@
-# Template Website
 
-A modern SaaS template built with Next.js 15, Tailwind CSS v4, Shadcn UI v2, Upstash Redis, and Supabase.
+# Blood Management System - Hospital Profile
 
-## Features: 
+A comprehensive blood management system built with Next.js and CSS, designed for hospital administrators to manage blood stock, doctors, requests, and donators.
 
-- ⚡️ **Next.js 15** - The React framework for production
-- 💨 **Tailwind CSS v4** - A utility-first CSS framework
-- 🔥 **Shadcn UI v2** - Beautifully designed components
-- 🔐 **Supabase** - For authentication and database
-- 📝 **TypeScript** - Static type checking
-- 🌓 **Dark Mode** - Light and dark theme support
-- 🧩 **React Hook Form** - Flexible form validation
-- ⚙️ **Zod** - Schema validation
-- 🛡️ **Enhanced Security** - Robust authentication with rate limiting using Upstash
-- 🔒 **Security Headers** - CSP and other security headers (Coming Soon)
-- 🚫 **Anti-Brute Force** - Protection against authentication attacks (Coming Soon)
+## Features
 
-## Prerequisites
+### Hospital Profile Pages
 
-Make sure you have the following installed on your machine:
+1. **Doctors Page** (`/hospital/doctors`)
+   - View all doctors in the hospital
+   - View doctor profiles with contact information
+   - Message doctors directly
+   - Add new doctors to the hospital
 
-- Node.js 20+
-- npm or yarn or pnpm (pnpm is redcommended)
-- Docker Desktop
-- Supabase CLI
+2. **Requests Page** (`/hospital/requests`)
+   - **Doctor Requests Tab**: View and manage blood requests from doctors
+   - **Other Hospitals Requests Tab**: View and respond to requests from other hospitals
+   - **Forever Donators Tab**: View forever donators and request blood from them
+   - Request blood from other hospitals
+   - Approve/reject requests
+   - Contact forever donators via phone or SMS
 
-Refer to the [Installation Guides](#installation-guides) Section of this README to find short guides and links to recommended installation guides for the above.
+3. **Stock Page** (`/hospital/stock`)
+   - **Stock Tab**: View current blood stock by type with quantities and differences
+   - **Donators Tab**: View regular donators and schedule donations
+   - **Forever Donators Tab**: View forever donators and request blood immediately
+   - Schedule donators by date and time
+   - Contact donators (call/SMS for forever donators)
 
 ## Getting Started
 
-### 1. Clone the repository
+### Prerequisites
 
-```bash
-git clone https://github.com/hamawebdev/excellence.git
-cd excellence
-```
-### 2. Install dependencies
+- **Node.js 18+** installed ([Download here](https://nodejs.org/))
+- **npm** (comes with Node.js) or **yarn** package manager
 
-```bash
-# recomended:
-pnpm install
-# or
-npm install
-# or
-yarn install
-```
+### Installation & Running
 
-### 3. Start the local Supabase database container
+1. **Open Terminal/Command Prompt** in the project directory:
+   ```bash
+   cd "C:\Users\asus\Desktop\ensia\New folder"
+   ```
 
-```bash
-supabase start
-```
+2. **Install dependencies** (this will install all required packages):
+   ```bash
+   npm install
+   ```
+   
+   This may take a few minutes. Wait for it to complete.
 
-> After the contianer starts, you will be provided with some credentials like the following example:
-> ```
->         API URL: http://127.0.0.1:54321
->     GraphQL URL: http://127.0.0.1:54321/graphql/v1
->  S3 Storage URL: http://127.0.0.1:54321/storage/v1/s3
->          DB URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
->      Studio URL: http://127.0.0.1:54323
->    Inbucket URL: http://127.0.0.1:54324
->      JWT secret: super-secret-jwt-token-with-at-least-32-characters-long
->        anon key: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0
-> service_role key: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU
->   S3 Access Key: 625729a08b95bf1b7ff351a663f3a23c
->   S3 Secret Key: 850181e4652dd023b7a98c58ae0d2d34bd487ee0cc3254aed6eda37307425907
->       S3 Region: local
-> ```
-> **Copy those credentials from you terminal** and save them in your notes or create a `supabase-local-credentials.txt` file in this repo (it is already added to `.gitignore` so that it is not pushed into the repository.)
+3. **Run the development server**:
+   ```bash
+   npm run dev
+   ```
 
-### 4. Set up environment variables
+4. **Open your browser** and navigate to:
+   ```
+   http://localhost:3000
+   ```
 
-1. Copy the `.env.example` file to `.env.local`:
+   The application will automatically redirect to `/hospital/stock` page.
 
-```bash
-cp .env.example .env.local
-```
+### Troubleshooting
 
-2. Update the environment variables in `.env.local` with your Supabase credentials:
+**If you get errors about missing modules:**
+- Make sure you ran `npm install` first
+- Delete `node_modules` folder and `package-lock.json` (if exists), then run `npm install` again
 
-```
-# Basic
-NEXT_PUBLIC_SITE_URL=http://localhost:3000
+**If port 3000 is already in use:**
+- The terminal will show you a different port (like 3001)
+- Use that port instead in your browser
 
-# Supabase Credentials (From your local project generated using Supabase CLI)
-NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321
-NEXT_PUBLIC_SUPABASE_ANON_KEY=xxxxxxxxx
-
-# Upstash
-UPSTASH_REDIS_REST_URL=xxxxxxxxx
-UPSTASH_REDIS_REST_TOKEN=xxxxxxxxx
-```
-
-### 5. Run the development server
-
-```bash
-# recommended:
-pnpm dev
-# or
-npm run dev
-# or
-yarn dev
-```
-
-Your application should now be running at [http://localhost:3000](http://localhost:3000).
-
-## Some **Features**
-- Email/password authentication
-- Google OAuth integration
-- Strong password requirements
-- Secure password handling
-- Session management with secure cookies
-- Rate Limiting with Upstash Redis
+**If TypeScript errors appear:**
+- These are usually just warnings and won't prevent the app from running
+- The app should still work fine in the browser
 
 ## Project Structure
 
 ```
-/
-├── app/                    # Next.js App Router
-│   ├── (auth)/             # Authentication routes
-│   │   ├── forgot-password/
-│   │   ├── login/
-│   │   ├── register/
-│   │   └── reset-password/
-│   ├── (public)/           # Public routes
-│   ├── (authenticated)/    # Protected routes
-│   ├── actions/            # Server actions
-│   └── globals.css         # Global styles
-├── assets/                 # Project assets
-│   ├── images/             # Image assets
-│   └── logos/              # Logo files
-├── components/             # React components
-│   ├── ui/                 # Shadcn UI components
-│   ├── mode-toggle.tsx     # Dark/light mode toggle
-│   └── theme-provider.tsx  # Theme context provider
-├── hooks/                  # Custom React hooks
-├── lib/                    # Utility functions and libraries
-├── public/                 # Static assets (favicons, etc.)
-├── supabase/               # Supabase configuration
-├── utils/                  # Helper functions
-│   └── supabase/           # Supabase client configuration
-├── middleware.ts           # Next.js middleware
-├── next.config.ts          # Next.js configuration
-├── tailwind.config.ts      # Tailwind CSS configuration
-├── tsconfig.json           # TypeScript configuration
-└── components.json         # Shadcn UI configuration
+├── app/
+│   ├── globals.css          # Global styles
+│   ├── layout.tsx           # Root layout
+│   ├── page.tsx             # Home page (redirects to stock)
+│   └── hospital/
+│       ├── doctors/
+│       │   └── page.tsx     # Doctors management page
+│       ├── requests/
+│       │   └── page.tsx     # Requests management page
+│       └── stock/
+│           └── page.tsx     # Stock and donator management page
+├── components/
+│   ├── Header.tsx           # Top header component
+│   ├── Sidebar.tsx          # Navigation sidebar
+│   └── HospitalLayout.tsx   # Layout wrapper for hospital pages
+└── package.json
 ```
 
-## Deployment
+## Design Features
 
-The application can be deployed to any platform that supports Next.js, such as Vercel, Netlify, or a custom server.
+- Clean, modern UI matching the provided design
+- Red color scheme for primary actions and active states
+- Responsive sidebar navigation
+- Modal dialogs for forms and actions
+- Status badges for request states
+- Card-based layout for doctors
+- Table-based layout for requests and stock
 
-```bash
-# Build the application
-pnpm build
-# or
-npm run build
-# or
-yarn build
+## Technologies Used
 
-# Start the production server
-pnpm start
-# or
-npm start
-# or
-yarn start
-```
+- **Next.js 14** - React framework with App Router
+- **TypeScript** - Type safety
+- **CSS** - Custom styling matching the design
+- **React Hooks** - State management
 
-## Available Scripts
+## Future Enhancements
 
-- `pnpm dev` - Run the development server
-- `pnpm build` - Build the application for production
-- `pnpm start` - Start the production server
-- `pnpm lint` - Run ESLint
-- `pnpm format` - Format code with Prettier
-- `pnpm clean:dotfiles` - Clean up dotfiles
-- `pnpm clean:node_modules` - Remove node_modules
-- `pnpm clean:cache` - Clear Next.js cache
-
-## Installation Guides
-
-### Install Node.js 20+
-
-Refer to this: [Node.js - Download Node.js &reg;](https://nodejs.org/en/download)
-
-### Install `pnpm`
-
-Refer to [Installation | pnpm](https://pnpm.io/installation)
-
-### Install Docker
-
-Refer to this: [Docker Desktop](https://www.docker.com/products/docker-desktop/)
-
-### Install Supabase CLI
-
-Refer to this article for more details: [Supabase CLI | Supabase Docs](https://supabase.com/docs/guides/local-development/cli/getting-started)
-
-Or, Simply use the following:
-
-```bash
-# macos & linux:
-brew install supabase/tap/supabase
-
-# windows:
-scoop bucket add supabase https://github.com/supabase/scoop-bucket.git
-scoop install supabase
-```
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
+- Backend API integration
+- Authentication and authorization
+- Real-time notifications
+- Database integration
+- Email/SMS service integration
+- Advanced filtering and search
+- Analytics and reporting
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is created for educational purposes.
+

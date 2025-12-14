@@ -15,7 +15,7 @@ export async function GET(req: Request) {
   const { data: doctor, error: doctorError } = await supabase
     .from("doctors")
     .select("id")
-    .eq("auth_id", user.id)
+    .eq("email", user.email)
     .single();
 
   if (doctorError || !doctor) {
@@ -25,7 +25,7 @@ export async function GET(req: Request) {
   // 3️⃣ Fetch notifications using integer doctor_id
   const { data, error } = await supabase
     .from("doctors_requests")
-    .select("id, blood_type, quantity, status, request_date, seen")
+    .select("id, blood_type, quantity, status, request_date, seen, request_no")
     .eq("doctor_id", doctor.id)
     .order("request_date", { ascending: false });
 
@@ -35,7 +35,7 @@ export async function GET(req: Request) {
 
   // 4️⃣ Format response
   const notifications = data.map((req) => ({
-    request_no: req.id,
+    request_no: req.request_no || req.id, // Use request_no if available, fallback to id
     blood_group: req.blood_type,
     quantity: req.quantity,
     status: req.status,

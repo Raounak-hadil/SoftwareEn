@@ -19,7 +19,7 @@ export async function middleware(request: NextRequest) {
         getAll() {
           return request.cookies.getAll();
         },
-        setAll(cookiesToSet) {
+        setAll(cookiesToSet: any[]) {
           cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
           supabaseResponse = NextResponse.next({
             request,
@@ -38,7 +38,9 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Define public routes that don't require authentication
-  const publicRoutes = ['/', '/login', '/register', '/forgot-password', '/reset-password', '/auth/callback'];
+  const publicRoutes = ['/', '/login', '/register', '/forgot-password', '/reset-password', '/auth/callback', '/testing', '/testing2', '/DoctorReq',
+    '/ProfileDoc', '/HospitalReq'
+  ];
   const isPublicRoute = publicRoutes.some((route) => {
     if (route === '/') {
       return pathname === '/'; // Only exact match for root
@@ -68,6 +70,6 @@ export const config = {
     '/ideas/:path*',
     '/services/:path*',
     // Catch all other routes except public ones
-    '/((?!_next/static|_next/image|favicon.ico|api|login|register|forgot-password|reset-password|auth|$).*)',
+    
   ],
 };

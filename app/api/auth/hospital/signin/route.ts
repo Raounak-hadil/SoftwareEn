@@ -4,6 +4,18 @@ import { cookies } from "next/headers";
 
 export async function POST(req: Request) {
   const supabase = createRouteHandlerClient({ cookies });
+<<<<<<< HEAD
+=======
+
+  let body;
+  try {
+    body = await req.json();
+    console.log("Login body:", body);
+  } catch (err) {
+    console.error("Failed to parse JSON:", err);
+    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+  }
+>>>>>>> dd0fcb94c4c5d1ae95d596f42e05cf506b1db64f
 
   const { email, password } = await req.json();
 
@@ -24,5 +36,13 @@ export async function POST(req: Request) {
     });
   }
 
+<<<<<<< HEAD
   return NextResponse.json({ success: true, user: data.user, session: data.session });
+=======
+  return NextResponse.json({
+    success: true,
+    user: data.user,
+    token: data.session?.access_token
+  });
+>>>>>>> dd0fcb94c4c5d1ae95d596f42e05cf506b1db64f
 }
