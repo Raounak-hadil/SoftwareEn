@@ -26,7 +26,7 @@ export async function GET() {
       *,
       doctor_details:doctor_id (first_name, last_name, speciality, email)
     `)
-    .eq("hospital_id", hospital.id)
+    .eq("Hospital_id", hospital.id)
     .eq("status", "Pending") // Only show requests that need action
     .order('request_date', { ascending: false });
 

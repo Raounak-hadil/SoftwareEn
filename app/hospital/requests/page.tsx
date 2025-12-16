@@ -1,164 +1,230 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import HospitalLayout from '@/components/HospitalLayout'
 
-// Mock data for requests
-const mockRequests = [
-  {
-    id: 1,
-    from: 'CHU Mustapha',
-    for: 'CHU Mustapha',
-    requestedBy: 'Dr. Jason Price',
-    date: '04 Sep 2024',
-    type: 'O+',
-    quantity: 2,
-    status: 'Completed',
-  },
-  {
-    id: 2,
-    from: 'CHU Mustapha',
-    for: 'CHU Mustapha',
-    requestedBy: 'Dr. Duane Dean',
-    date: '28 May 2024',
-    type: 'A+',
-    quantity: 3,
-    status: 'Processing',
-  },
-  {
-    id: 3,
-    from: 'CHU Mustapha',
-    for: 'CHU Mustapha',
-    requestedBy: 'Dr. Jonathan Barker',
-    date: '23 Nov 2024',
-    type: 'B-',
-    quantity: 1,
-    status: 'Rejected',
-  },
-  {
-    id: 4,
-    from: 'Hospital ABC',
-    for: 'CHU Mustapha',
-    requestedBy: 'Hospital ABC Admin',
-    date: '15 Aug 2024',
-    type: 'O-',
-    quantity: 5,
-    status: 'On Hold',
-  },
-  {
-    id: 5,
-    from: 'CHU Mustapha',
-    for: 'Hospital XYZ',
-    requestedBy: 'CHU Mustapha Admin',
-    date: '21 Dec 2024',
-    type: 'AB+',
-    quantity: 4,
-    status: 'In Transit',
-  },
-]
+// --- Interfaces matching your Supabase/Backend responses ---
 
-const mockForeverDonators = [
-  {
-    id: 1,
-    name: 'Ahmed Benali',
-    phone: '+213 555 123 456',
-    bloodType: 'O+',
-    lastDonation: '15 Jan 2024',
-  },
-  {
-    id: 2,
-    name: 'Fatima Zohra',
-    phone: '+213 555 234 567',
-    bloodType: 'A+',
-    lastDonation: '20 Jan 2024',
-  },
-  {
-    id: 3,
-    name: 'Mohamed Amine',
-    phone: '+213 555 345 678',
-    bloodType: 'B-',
-    lastDonation: '10 Jan 2024',
-  },
-]
+interface DoctorDetails {
+  first_name: string
+  last_name: string
+  speciality: string
+  email: string
+}
 
-// DoctorRequests and HospitalRequests interfaces and data
 interface DoctorRequest {
-  id: number;
-  hospital_id: number;
-  doctor_id: number;
-  urgency: string;
-  blood_type: string;
-  quantity: number;
-  request_date: string;
-  status: string;
-  seen: boolean;
-}
-interface HospitalRequest {
-  id: number;
-  hospital_from_id: number;
-  hospital_to_id: number;
-  email: string;
-  blood_type: string;
-  priority: string;
-  units_needed: number;
-  notes: string;
-  status: string;
+  id: number
+  hospital_id: number
+  doctor_id: number
+  urgency: string // specific to doctor request table
+  blood_type: string
+  quantity: number
+  request_date: string
+  status: string
+  seen: boolean
+  doctor_details?: DoctorDetails // Joined data
 }
 
-const mockDoctorRequests: DoctorRequest[] = [
-  { id: 1, hospital_id: 1, doctor_id: 1, urgency: 'Urgent', blood_type: 'O+', quantity: 2, request_date: '2024-09-15', status: 'Completed', seen: true },
-  { id: 2, hospital_id: 1, doctor_id: 2, urgency: 'Normal', blood_type: 'A+', quantity: 3, request_date: '2024-05-28', status: 'Processing', seen: false },
-  { id: 3, hospital_id: 1, doctor_id: 3, urgency: 'Emergency', blood_type: 'B-', quantity: 1, request_date: '2024-11-23', status: 'Rejected', seen: true },
-];
-const mockHospitalRequests: HospitalRequest[] = [
-  { id: 1, hospital_from_id: 2, hospital_to_id: 1, email: 'abc@hospital.com', blood_type: 'O-', priority: 'Urgent', units_needed: 5, notes: 'Fast delivery needed', status: 'On Hold' },
-  { id: 2, hospital_from_id: 1, hospital_to_id: 3, email: 'xyz@hospital.com', blood_type: 'AB+', priority: 'Normal', units_needed: 4, notes: '-', status: 'In Transit' },
-];
+interface HospitalDetails {
+  hosname: string
+  city: string
+}
+
+interface HospitalRequest {
+  id: number
+  hospital_from_id: number
+  hospital_to_id: number
+  email: string
+  blood_type: string
+  priority: string // 'priority' in hospital request table
+  units_needed: number
+  notes: string
+  status: string
+  hospital_from_details?: HospitalDetails // Joined data
+}
 
 interface Donator {
   id: number
-  name: string
+  name: string // Assuming DB view or frontend mapping
   phone: string
   bloodType: string
   lastDonation: string
 }
 
+// NOTE: Based on your backend, donators might return snake_case. 
+// If your DB returns `first_name`, you may need to adjust the interface below.
+interface DBDonator {
+  id: number
+  first_name: string
+  last_name: string
+  phone_num: string
+  blood_type: string
+  last_donation_date: string
+}
+
 export default function RequestsPage() {
   const [activeTab, setActiveTab] = useState<'requests' | 'forever-donators' | 'other-requests'>('requests')
-  const [doctorRequests, setDoctorRequests] = useState<DoctorRequest[]>(mockDoctorRequests)
-  const [hospitalRequests, setHospitalRequests] = useState<HospitalRequest[]>(mockHospitalRequests)
-  const [foreverDonators] = useState<Donator[]>(mockForeverDonators)
+  
+  // Data State
+  const [doctorRequests, setDoctorRequests] = useState<DoctorRequest[]>([])
+  const [hospitalRequests, setHospitalRequests] = useState<HospitalRequest[]>([])
+  const [foreverDonators, setForeverDonators] = useState<DBDonator[]>([])
+  const [loading, setLoading] = useState(true)
+  const [hospitals, setHospitals] = useState<{ id: number; hosname: string; city?: string }[]>([])
+
+  // Modal State
   const [showRequestModal, setShowRequestModal] = useState(false)
   const [showDonatorModal, setShowDonatorModal] = useState(false)
-  const [selectedDonator, setSelectedDonator] = useState<Donator | null>(null)
+  const [selectedDonator, setSelectedDonator] = useState<DBDonator | null>(null)
+  // Track which doctor request is being updated and which action is in progress
+  const [updatingRequestId, setUpdatingRequestId] = useState<number | null>(null)
+  const [updatingAction, setUpdatingAction] = useState<'Approved' | 'Rejected' | null>(null)
 
-  const getStatusClass = (status: string) => {
-    const statusMap: { [key: string]: string } = {
-      Completed: 'status-completed',
-      Processing: 'status-processing',
-      Rejected: 'status-rejected',
-      'On Hold': 'status-on-hold',
-      'In Transit': 'status-in-transit',
+  // Form State for Sending Request
+  const [requestForm, setRequestForm] = useState({
+    hospital_to_id: '',
+    email: 'contact@myhospital.com', // Default or user input
+    blood_type: 'O+',
+    priority: 'Medium',
+    units_needed: 1,
+    notes: ''
+  })
+
+  // --- 1. Fetch All Data ---
+  const fetchData = async () => {
+    setLoading(true)
+    try {
+      // Fetch Doctor Requests
+      const docRes = await fetch('/api/hospital/doctorsRequests/Requests')
+      const docData = await docRes.json()
+      if (docData.success) setDoctorRequests(docData.pending_requests)
+
+      // Fetch Incoming Hospital Requests
+      const hospRes = await fetch('/api/hospital/hospitalRequests/incoming')
+      const hospData = await hospRes.json()
+      if (hospData.success) setHospitalRequests(hospData.incoming_requests)
+
+      // Fetch Donators
+      // Linked to /app/api/hospital/Donnations/myDonors/route.ts
+      const donRes = await fetch('/api/hospital/Donnations/myDonors') 
+      const donData = await donRes.json()
+      if (donData.success) setForeverDonators(donData.donators)
+
+      // Fetch hospitals for the request target dropdown
+      const hosRes = await fetch('/api/hospitals_list')
+      const hosData = await hosRes.json()
+      if (hosData?.hospitals && Array.isArray(hosData.hospitals)) setHospitals(hosData.hospitals)
+
+    } catch (error) {
+      console.error("Failed to fetch requests data:", error)
+    } finally {
+      setLoading(false)
     }
-    return statusMap[status] || 'status-processing'
   }
 
-  const handleRequestDonator = (donator: Donator) => {
-    setSelectedDonator(donator)
-    setShowDonatorModal(true)
+  useEffect(() => {
+    fetchData()
+  }, [])
+
+  // --- 2. Action Handlers ---
+
+  const handleDoctorAction = async (id: number, status: 'Approved' | 'Rejected') => {
+    // Prevent concurrent updates
+    if (updatingRequestId) return
+
+    setUpdatingRequestId(id)
+    setUpdatingAction(status)
+
+    try {
+      const res = await fetch('/api/hospital/doctorsRequests/Requests/update_status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ request_id: id, new_status: status })
+      })
+
+      const json = await res.json()
+      if (res.ok && json?.success) {
+        // Remove the handled request from UI
+        setDoctorRequests(prev => prev.filter(r => r.id !== id))
+        // Optional: show a brief confirmation
+        // eslint-disable-next-line no-alert
+        alert(`Request ${status.toLowerCase()} successfully.`)
+      } else {
+        // eslint-disable-next-line no-alert
+        alert(json?.error || 'Failed to update the request')
+        console.error('Failed to update doctor request:', json)
+      }
+    } catch (error) {
+      console.error('Error updating doctor request:', error)
+      // eslint-disable-next-line no-alert
+      alert('Something went wrong while updating the request')
+    } finally {
+      setUpdatingRequestId(null)
+      setUpdatingAction(null)
+    }
   }
 
-  const handleApproveDoctor = (id: number) => {
-    setDoctorRequests(dr => dr.map(r => r.id === id ? { ...r, status: 'Approved' } : r))
+  const handleHospitalAction = async (id: number, status: 'Approved' | 'Rejected') => {
+    try {
+      const res = await fetch('/api/hospital/hospitalRequests/update_status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ request_id: id, new_status: status })
+      })
+      if (res.ok) {
+        // Optimistic update: Remove from list
+        setHospitalRequests(prev => prev.filter(r => r.id !== id))
+      }
+    } catch (error) {
+      console.error("Error updating hospital request:", error)
+    }
   }
-  const handleRejectDoctor = (id: number) => {
-    setDoctorRequests(dr => dr.map(r => r.id === id ? { ...r, status: 'Rejected' } : r))
+
+  // --- 3. Handle Form Submission (Your POST Logic) ---
+  const handleSendRequest = async () => {
+    if (!requestForm.hospital_to_id) return alert("Please select a Target Hospital")
+
+    try {
+      const res = await fetch('/api/hospital/hospitalRequests/requestForm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          hospital_to_id: parseInt(requestForm.hospital_to_id),
+          email: requestForm.email,
+          blood_type: requestForm.blood_type,
+          priority: requestForm.priority,
+          units_needed: requestForm.units_needed,
+          notes: requestForm.notes
+        })
+      })
+
+      const result = await res.json()
+      
+      if (res.ok && result.success) {
+        alert("Request sent successfully!")
+        setShowRequestModal(false)
+        // Reset form
+        setRequestForm(prev => ({ ...prev, units_needed: 1, notes: '' }))
+      } else {
+        alert(result.error || "Failed to send request")
+      }
+    } catch (error) {
+      console.error("Error sending request:", error)
+    }
   }
-  const handleApproveHospital = (id: number) => {
-    setHospitalRequests(hr => hr.map(r => r.id === id ? { ...r, status: 'Approved' } : r))
-  }
-  const handleRejectHospital = (id: number) => {
-    setHospitalRequests(hr => hr.map(r => r.id === id ? { ...r, status: 'Rejected' } : r))
+
+  // Helper for status colors
+  const getStatusClass = (status: string) => {
+    const map: Record<string, string> = {
+      'Approved': 'text-green-600 bg-green-100',
+      'Completed': 'text-green-600 bg-green-100',
+      'Processing': 'text-blue-600 bg-blue-100',
+      'Pending': 'text-yellow-600 bg-yellow-100',
+      'Rejected': 'text-red-600 bg-red-100',
+      'On Hold': 'text-orange-600 bg-orange-100',
+      'In Transit': 'text-purple-600 bg-purple-100',
+    }
+    return `px-2 py-1 rounded-full text-xs font-semibold ${map[status] || 'text-gray-600 bg-gray-100'}`
   }
 
   return (
@@ -166,13 +232,14 @@ export default function RequestsPage() {
       <div className="flex justify-between items-center mb-[30px]">
         <h1 className="text-[32px] font-bold text-[#111827] mb-[30px]">Requests</h1>
         <button 
-          className="py-2.5 px-5 border-none rounded-lg text-sm font-semibold cursor-pointer transition-all duration-300 inline-flex items-center gap-2 bg-[#dc2626] text-white hover:bg-[#dc2626]-hover" 
+          className="py-2.5 px-5 border-none rounded-lg text-sm font-semibold cursor-pointer transition-all duration-300 inline-flex items-center gap-2 bg-[#dc2626] text-white hover:bg-[#b91c1c]" 
           onClick={() => setShowRequestModal(true)}
         >
           Request from Other Hospital
         </button>
       </div>
 
+      {/* Tabs */}
       <div className="flex gap-2.5 mb-[30px]">
         <button
           className={`py-2.5 px-5 border-none rounded-lg text-sm font-semibold cursor-pointer transition-all duration-300 ${
@@ -192,51 +259,70 @@ export default function RequestsPage() {
           }`}
           onClick={() => setActiveTab('other-requests')}
         >
-          Other Hospitals Requests
+          Incoming Hospital Requests
         </button>
-        <button
-          className={`py-2.5 px-5 border-none rounded-lg text-sm font-semibold cursor-pointer transition-all duration-300 ${
-            activeTab === 'forever-donators' 
-              ? 'bg-[#dc2626] text-white' 
-              : 'bg-white text-[#dc2626] border border-[#dc2626]'
-          }`}
-          onClick={() => setActiveTab('forever-donators')}
-        >
-          Forever Donators
-        </button>
+        
       </div>
 
-      {activeTab === 'requests' && (
+      {loading && <div className="p-10 text-center text-gray-500">Loading requests...</div>}
+
+      {/* DOCTOR REQUESTS TABLE */}
+      {!loading && activeTab === 'requests' && (
         <div className="bg-white rounded-lg overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.1)]">
           <table className="w-full border-collapse">
             <thead className="bg-[#f9fafb]">
               <tr>
-                <th className="p-[15px] text-left font-semibold text-[#111827] text-sm uppercase border-b-2 border-[#e5e7eb]">Hospital ID</th>
-                <th className="p-[15px] text-left font-semibold text-[#111827] text-sm uppercase border-b-2 border-[#e5e7eb]">Doctor ID</th>
+                <th className="p-[15px] text-left font-semibold text-[#111827] text-sm uppercase border-b-2 border-[#e5e7eb]">Doctor</th>
+                <th className="p-[15px] text-left font-semibold text-[#111827] text-sm uppercase border-b-2 border-[#e5e7eb]">Speciality</th>
                 <th className="p-[15px] text-left font-semibold text-[#111827] text-sm uppercase border-b-2 border-[#e5e7eb]">Urgency</th>
                 <th className="p-[15px] text-left font-semibold text-[#111827] text-sm uppercase border-b-2 border-[#e5e7eb]">Blood Type</th>
                 <th className="p-[15px] text-left font-semibold text-[#111827] text-sm uppercase border-b-2 border-[#e5e7eb]">Quantity</th>
-                <th className="p-[15px] text-left font-semibold text-[#111827] text-sm uppercase border-b-2 border-[#e5e7eb]">Request Date</th>
+                <th className="p-[15px] text-left font-semibold text-[#111827] text-sm uppercase border-b-2 border-[#e5e7eb]">Date</th>
                 <th className="p-[15px] text-left font-semibold text-[#111827] text-sm uppercase border-b-2 border-[#e5e7eb]">Status</th>
-                <th className="p-[15px] text-left font-semibold text-[#111827] text-sm uppercase border-b-2 border-[#e5e7eb]">Seen</th>
                 <th className="p-[15px] text-left font-semibold text-[#111827] text-sm uppercase border-b-2 border-[#e5e7eb]">Actions</th>
               </tr>
             </thead>
             <tbody>
+              {doctorRequests.length === 0 && <tr><td colSpan={8} className="p-4 text-center text-gray-500">No pending doctor requests.</td></tr>}
               {doctorRequests.map((request) => (
                 <tr key={request.id} className="hover:bg-[#f9fafb]">
-                  <td className="p-[15px] border-b border-[#e5e7eb] text-[#111827] text-sm">{request.hospital_id}</td>
-                  <td className="p-[15px] border-b border-[#e5e7eb] text-[#111827] text-sm">{request.doctor_id}</td>
-                  <td className="p-[15px] border-b border-[#e5e7eb] text-[#111827] text-sm">{request.urgency}</td>
-                  <td className="p-[15px] border-b border-[#e5e7eb] text-[#111827] text-sm">{request.blood_type}</td>
+                  <td className="p-[15px] border-b border-[#e5e7eb] text-[#111827] text-sm font-medium">
+                    {request.doctor_details 
+                      ? `${request.doctor_details.first_name} ${request.doctor_details.last_name}` 
+                      : `ID: ${request.doctor_id}`}
+                  </td>
+                  <td className="p-[15px] border-b border-[#e5e7eb] text-[#111827] text-sm">
+                    {request.doctor_details?.speciality || '-'}
+                  </td>
+                  <td className="p-[15px] border-b border-[#e5e7eb] text-[#111827] text-sm">
+                    <span className={request.urgency === 'Emergency' ? 'text-red-600 font-bold' : ''}>
+                      {request.urgency}
+                    </span>
+                  </td>
+                  <td className="p-[15px] border-b border-[#e5e7eb] text-[#111827] text-sm font-bold">{request.blood_type}</td>
                   <td className="p-[15px] border-b border-[#e5e7eb] text-[#111827] text-sm">{request.quantity}</td>
-                  <td className="p-[15px] border-b border-[#e5e7eb] text-[#111827] text-sm">{request.request_date}</td>
-                  <td className="p-[15px] border-b border-[#e5e7eb] text-[#111827] text-sm">{request.status}</td>
-                  <td className="p-[15px] border-b border-[#e5e7eb] text-[#111827] text-sm">{request.seen ? 'Yes' : 'No'}</td>
+                  <td className="p-[15px] border-b border-[#e5e7eb] text-[#111827] text-sm">
+                    {new Date(request.request_date).toLocaleDateString()}
+                  </td>
+                  <td className="p-[15px] border-b border-[#e5e7eb] text-[#111827] text-sm">
+                    <span className={getStatusClass(request.status)}>{request.status}</span>
+                  </td>
                   <td className="p-[15px] border-b border-[#e5e7eb] text-[#111827] text-sm">
                     <div className="flex gap-2">
-                      <button className="py-1.5 px-3 border-none rounded-lg text-xs font-semibold cursor-pointer transition-all duration-300 inline-flex items-center gap-2 bg-[#dc2626] text-white hover:bg-[#dc2626]-hover" onClick={() => handleApproveDoctor(request.id)}>Approve</button>
-                      <button className="py-1.5 px-3 border-none rounded-lg text-xs font-semibold cursor-pointer transition-all duration-300 inline-flex items-center gap-2 bg-white text-[#111827] border border-[#e5e7eb] hover:bg-[#f9fafb]" onClick={() => handleRejectDoctor(request.id)}>Reject</button>
+                      <button
+                        className="py-1.5 px-3 rounded text-xs font-semibold bg-[#dc2626] text-white hover:bg-[#b91c1c] disabled:opacity-50 disabled:cursor-not-allowed"
+                        onClick={() => handleDoctorAction(request.id, 'Approved')}
+                        disabled={updatingRequestId === request.id}
+                      >
+                        {updatingRequestId === request.id && updatingAction === 'Approved' ? 'Approving...' : 'Approve'}
+                      </button>
+                      <button
+                        className="py-1.5 px-3 rounded text-xs font-semibold bg-white text-[#111827] border border-[#e5e7eb] hover:bg-[#f9fafb] disabled:opacity-50 disabled:cursor-not-allowed"
+                        onClick={() => handleDoctorAction(request.id, 'Rejected')}
+                        disabled={updatingRequestId === request.id}
+                      >
+                        {updatingRequestId === request.id && updatingAction === 'Rejected' ? 'Rejecting...' : 'Reject'}
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -246,225 +332,180 @@ export default function RequestsPage() {
         </div>
       )}
 
-      {activeTab === 'other-requests' && (
+      {/* HOSPITAL INCOMING REQUESTS TABLE */}
+      {!loading && activeTab === 'other-requests' && (
         <div className="bg-white rounded-lg overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.1)]">
           <table className="w-full border-collapse">
             <thead className="bg-[#f9fafb]">
               <tr>
-                <th className="p-[15px] text-left font-semibold text-[#111827] text-sm uppercase border-b-2 border-[#e5e7eb]">Hospital From ID</th>
-                <th className="p-[15px] text-left font-semibold text-[#111827] text-sm uppercase border-b-2 border-[#e5e7eb]">Hospital To ID</th>
+                <th className="p-[15px] text-left font-semibold text-[#111827] text-sm uppercase border-b-2 border-[#e5e7eb]">Hospital From</th>
+                <th className="p-[15px] text-left font-semibold text-[#111827] text-sm uppercase border-b-2 border-[#e5e7eb]">City</th>
                 <th className="p-[15px] text-left font-semibold text-[#111827] text-sm uppercase border-b-2 border-[#e5e7eb]">Email</th>
                 <th className="p-[15px] text-left font-semibold text-[#111827] text-sm uppercase border-b-2 border-[#e5e7eb]">Blood Type</th>
                 <th className="p-[15px] text-left font-semibold text-[#111827] text-sm uppercase border-b-2 border-[#e5e7eb]">Priority</th>
-                <th className="p-[15px] text-left font-semibold text-[#111827] text-sm uppercase border-b-2 border-[#e5e7eb]">Units Needed</th>
+                <th className="p-[15px] text-left font-semibold text-[#111827] text-sm uppercase border-b-2 border-[#e5e7eb]">Units</th>
                 <th className="p-[15px] text-left font-semibold text-[#111827] text-sm uppercase border-b-2 border-[#e5e7eb]">Notes</th>
                 <th className="p-[15px] text-left font-semibold text-[#111827] text-sm uppercase border-b-2 border-[#e5e7eb]">Status</th>
                 <th className="p-[15px] text-left font-semibold text-[#111827] text-sm uppercase border-b-2 border-[#e5e7eb]">Actions</th>
               </tr>
             </thead>
             <tbody>
+              {hospitalRequests.length === 0 && <tr><td colSpan={9} className="p-4 text-center text-gray-500">No incoming requests.</td></tr>}
               {hospitalRequests.map((request) => (
                 <tr key={request.id} className="hover:bg-[#f9fafb]">
-                  <td className="p-[15px] border-b border-[#e5e7eb] text-[#111827] text-sm">{request.hospital_from_id}</td>
-                  <td className="p-[15px] border-b border-[#e5e7eb] text-[#111827] text-sm">{request.hospital_to_id}</td>
+                  <td className="p-[15px] border-b border-[#e5e7eb] text-[#111827] text-sm font-medium">
+                    {request.hospital_from_details?.hosname || `ID: ${request.hospital_from_id}`}
+                  </td>
+                  <td className="p-[15px] border-b border-[#e5e7eb] text-[#111827] text-sm">
+                    {request.hospital_from_details?.city || '-'}
+                  </td>
                   <td className="p-[15px] border-b border-[#e5e7eb] text-[#111827] text-sm">{request.email}</td>
-                  <td className="p-[15px] border-b border-[#e5e7eb] text-[#111827] text-sm">{request.blood_type}</td>
+                  <td className="p-[15px] border-b border-[#e5e7eb] text-[#111827] text-sm font-bold">{request.blood_type}</td>
                   <td className="p-[15px] border-b border-[#e5e7eb] text-[#111827] text-sm">{request.priority}</td>
                   <td className="p-[15px] border-b border-[#e5e7eb] text-[#111827] text-sm">{request.units_needed}</td>
-                  <td className="p-[15px] border-b border-[#e5e7eb] text-[#111827] text-sm">{request.notes}</td>
-                  <td className="p-[15px] border-b border-[#e5e7eb] text-[#111827] text-sm">{request.status}</td>
+                  <td className="p-[15px] border-b border-[#e5e7eb] text-[#6b7280] text-xs max-w-[150px] truncate">{request.notes}</td>
                   <td className="p-[15px] border-b border-[#e5e7eb] text-[#111827] text-sm">
-                    <div className="flex gap-2">
-                      <button className="py-1.5 px-3 border-none rounded-lg text-xs font-semibold cursor-pointer transition-all duration-300 inline-flex items-center gap-2 bg-[#dc2626] text-white hover:bg-[#dc2626]-hover" onClick={() => handleApproveHospital(request.id)}>Approve</button>
-                      <button className="py-1.5 px-3 border-none rounded-lg text-xs font-semibold cursor-pointer transition-all duration-300 inline-flex items-center gap-2 bg-white text-[#111827] border border-[#e5e7eb] hover:bg-[#f9fafb]" onClick={() => handleRejectHospital(request.id)}>Reject</button>
-                    </div>
+                    <span className={getStatusClass(request.status)}>{request.status}</span>
                   </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      {activeTab === 'forever-donators' && (
-        <div className="bg-white rounded-lg overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.1)]">
-          <table className="w-full border-collapse">
-            <thead className="bg-[#f9fafb]">
-              <tr>
-                <th className="p-[15px] text-left font-semibold text-[#111827] text-sm uppercase border-b-2 border-[#e5e7eb]">Name</th>
-                <th className="p-[15px] text-left font-semibold text-[#111827] text-sm uppercase border-b-2 border-[#e5e7eb]">Phone</th>
-                <th className="p-[15px] text-left font-semibold text-[#111827] text-sm uppercase border-b-2 border-[#e5e7eb]">Blood Type</th>
-                <th className="p-[15px] text-left font-semibold text-[#111827] text-sm uppercase border-b-2 border-[#e5e7eb]">Last Donation</th>
-                <th className="p-[15px] text-left font-semibold text-[#111827] text-sm uppercase border-b-2 border-[#e5e7eb]">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {foreverDonators.map((donator) => (
-                <tr key={donator.id} className="hover:bg-[#f9fafb]">
-                  <td className="p-[15px] border-b border-[#e5e7eb] text-[#111827] text-sm">{donator.name}</td>
-                  <td className="p-[15px] border-b border-[#e5e7eb] text-[#111827] text-sm">{donator.phone}</td>
-                  <td className="p-[15px] border-b border-[#e5e7eb] text-[#111827] text-sm">{donator.bloodType}</td>
-                  <td className="p-[15px] border-b border-[#e5e7eb] text-[#111827] text-sm">{donator.lastDonation}</td>
                   <td className="p-[15px] border-b border-[#e5e7eb] text-[#111827] text-sm">
                     <div className="flex gap-2">
-                      <button
-                        className="py-1.5 px-3 border-none rounded-lg text-xs font-semibold cursor-pointer transition-all duration-300 inline-flex items-center gap-2 bg-[#dc2626] text-white hover:bg-[#dc2626]-hover"
-                        onClick={() => handleRequestDonator(donator)}
-                      >
-                        Request
+                      <button className="py-1.5 px-3 rounded text-xs font-semibold bg-[#dc2626] text-white hover:bg-[#b91c1c]"
+                        onClick={() => handleHospitalAction(request.id, 'Approved')}>
+                        Approve
                       </button>
-                      <button className="py-1.5 px-3 border-none rounded-lg text-xs font-semibold cursor-pointer transition-all duration-300 inline-flex items-center gap-2 bg-white text-[#111827] border border-[#e5e7eb] hover:bg-[#f9fafb]">Call</button>
-                      <button className="py-1.5 px-3 border-none rounded-lg text-xs font-semibold cursor-pointer transition-all duration-300 inline-flex items-center gap-2 bg-white text-[#111827] border border-[#e5e7eb] hover:bg-[#f9fafb]">SMS</button>
+                      <button className="py-1.5 px-3 rounded text-xs font-semibold bg-white text-[#111827] border border-[#e5e7eb] hover:bg-[#f9fafb]"
+                         onClick={() => handleHospitalAction(request.id, 'Rejected')}>
+                        Reject
+                      </button>
                     </div>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
-          <div className="text-right mt-5 font-semibold text-[#111827]">Showing {foreverDonators.length} forever donators</div>
         </div>
       )}
 
+     
+
+      {/* REQUEST FORM MODAL (LINKED TO /api/hospital_request/route.ts) */}
       {showRequestModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000]" onClick={() => setShowRequestModal(false)}>
-          <div className="bg-white rounded-lg p-[30px] max-w-[500px] w-[90%] max-h-[90vh] overflow-y-auto" onClick={(e: React.MouseEvent<HTMLDivElement>) => e.stopPropagation()}>
+          <div className="bg-white rounded-lg p-[30px] max-w-[500px] w-[90%] max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <div className="flex justify-between items-center mb-5">
               <h2 className="text-2xl font-bold text-[#111827]">Request Blood from Other Hospital</h2>
+              <button className="bg-none border-none text-2xl cursor-pointer text-[#6b7280]" onClick={() => setShowRequestModal(false)}>×</button>
+            </div>
+            
+            <div className="mb-5">
+              <label className="block mb-2 font-semibold text-[#111827] text-sm">Target Hospital:</label>
+              <select
+                className="w-full py-2.5 px-[15px] border border-[#e5e7eb] rounded-lg text-sm bg-white"
+                value={requestForm.hospital_to_id}
+                onChange={(e) => setRequestForm({...requestForm, hospital_to_id: e.target.value})}
+              >
+                <option value="">Select hospital</option>
+                {hospitals.map(h => (
+                  <option key={h.id} value={String(h.id)}>{h.hosname}{h.city ? ` — ${h.city}` : ''} (ID: {h.id})</option>
+                ))}
+              </select>
+              <p className="text-xs text-gray-500 mt-1">Choose the hospital to request from.</p>
+            </div>
+
+            <div className="mb-5">
+              <label className="block mb-2 font-semibold text-[#111827] text-sm">Your Contact Email:</label>
+              <input 
+                type="email" 
+                className="w-full py-2.5 px-[15px] border border-[#e5e7eb] rounded-lg text-sm bg-white"
+                value={requestForm.email}
+                onChange={(e) => setRequestForm({...requestForm, email: e.target.value})}
+              />
+            </div>
+
+            <div className="mb-5">
+              <label className="block mb-2 font-semibold text-[#111827] text-sm">Blood Type:</label>
+              <select 
+                className="w-full py-2.5 px-[15px] border border-[#e5e7eb] rounded-lg text-sm bg-white"
+                value={requestForm.blood_type}
+                onChange={(e) => setRequestForm({...requestForm, blood_type: e.target.value})}
+              >
+                {['O+', 'O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-'].map(type => <option key={type} value={type}>{type}</option>)}
+              </select>
+            </div>
+
+            <div className="mb-5">
+              <label className="block mb-2 font-semibold text-[#111827] text-sm">Units Needed:</label>
+              <input 
+                type="number" 
+                className="w-full py-2.5 px-[15px] border border-[#e5e7eb] rounded-lg text-sm" 
+                min="1"
+                value={requestForm.units_needed}
+                onChange={(e) => setRequestForm({...requestForm, units_needed: parseInt(e.target.value)})}
+              />
+            </div>
+
+            <div className="mb-5">
+              <label className="block mb-2 font-semibold text-[#111827] text-sm">Priority:</label>
+              <select 
+                className="w-full py-2.5 px-[15px] border border-[#e5e7eb] rounded-lg text-sm bg-white"
+                value={requestForm.priority}
+                onChange={(e) => setRequestForm({...requestForm, priority: e.target.value})}
+              >
+                <option value="Low">Low</option>
+                <option value="Medium">Medium</option>
+                <option value="High">High</option>
+                <option value="Critical">Critical</option>
+              </select>
+            </div>
+
+            <div className="mb-5">
+              <label className="block mb-2 font-semibold text-[#111827] text-sm">Notes:</label>
+              <textarea
+                className="w-full py-2.5 px-[15px] border border-[#e5e7eb] rounded-lg text-sm focus:outline-none focus:border-[#dc2626]"
+                rows={3}
+                placeholder="Additional notes"
+                value={requestForm.notes}
+                onChange={(e) => setRequestForm({...requestForm, notes: e.target.value})}
+              ></textarea>
+            </div>
+
+            <div className="flex gap-2.5 justify-end">
               <button
-                className="bg-none border-none text-2xl cursor-pointer text-[#6b7280]"
+                className="py-2.5 px-5 border-none rounded-lg text-sm font-semibold cursor-pointer transition-all duration-300 inline-flex items-center gap-2 bg-white text-[#111827] border border-[#e5e7eb] hover:bg-[#f9fafb]"
                 onClick={() => setShowRequestModal(false)}
               >
-                ×
+                Cancel
               </button>
-            </div>
-            <div>
-              <div className="mb-5">
-                <label className="block mb-2 font-semibold text-[#111827] text-sm">Hospital:</label>
-                <select className="w-full py-2.5 px-[15px] border border-[#e5e7eb] rounded-lg text-sm bg-white">
-                  <option>Select Hospital</option>
-                  <option>Hospital ABC</option>
-                  <option>Hospital XYZ</option>
-                  <option>Hospital DEF</option>
-                </select>
-              </div>
-              <div className="mb-5">
-                <label className="block mb-2 font-semibold text-[#111827] text-sm">Blood Type:</label>
-                <select className="w-full py-2.5 px-[15px] border border-[#e5e7eb] rounded-lg text-sm bg-white">
-                  <option>Select Blood Type</option>
-                  <option>O+</option>
-                  <option>O-</option>
-                  <option>A+</option>
-                  <option>A-</option>
-                  <option>B+</option>
-                  <option>B-</option>
-                  <option>AB+</option>
-                  <option>AB-</option>
-                </select>
-              </div>
-              <div className="mb-5">
-                <label className="block mb-2 font-semibold text-[#111827] text-sm">Quantity:</label>
-                <input type="number" className="w-full py-2.5 px-[15px] border border-[#e5e7eb] rounded-lg text-sm focus:outline-none focus:border-[#dc2626]" placeholder="Enter quantity" min="1" />
-              </div>
-              <div className="mb-5">
-                <label className="block mb-2 font-semibold text-[#111827] text-sm">Urgency:</label>
-                <select className="w-full py-2.5 px-[15px] border border-[#e5e7eb] rounded-lg text-sm bg-white">
-                  <option>Normal</option>
-                  <option>Urgent</option>
-                  <option>Emergency</option>
-                </select>
-              </div>
-              <div className="mb-5">
-                <label className="block mb-2 font-semibold text-[#111827] text-sm">Notes:</label>
-                <textarea
-                  className="w-full py-2.5 px-[15px] border border-[#e5e7eb] rounded-lg text-sm focus:outline-none focus:border-[#dc2626]"
-                  rows={3}
-                  placeholder="Additional notes"
-                ></textarea>
-              </div>
-              <div className="flex gap-2.5 justify-end">
-                <button
-                  className="py-2.5 px-5 border-none rounded-lg text-sm font-semibold cursor-pointer transition-all duration-300 inline-flex items-center gap-2 bg-white text-[#111827] border border-[#e5e7eb] hover:bg-[#f9fafb]"
-                  onClick={() => setShowRequestModal(false)}
-                >
-                  Cancel
-                </button>
-                <button className="py-2.5 px-5 border-none rounded-lg text-sm font-semibold cursor-pointer transition-all duration-300 inline-flex items-center gap-2 bg-[#dc2626] text-white hover:bg-[#dc2626]-hover">Send Request</button>
-              </div>
+              <button 
+                className="py-2.5 px-5 border-none rounded-lg text-sm font-semibold cursor-pointer transition-all duration-300 inline-flex items-center gap-2 bg-[#dc2626] text-white hover:bg-[#b91c1c]"
+                onClick={handleSendRequest}
+              >
+                Send Request
+              </button>
             </div>
           </div>
         </div>
       )}
 
+      {/* DONATOR CONTACT MODAL (Placeholder for future SMS API) */}
       {showDonatorModal && selectedDonator && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000]" onClick={() => setShowDonatorModal(false)}>
-          <div className="bg-white rounded-lg p-[30px] max-w-[500px] w-[90%] max-h-[90vh] overflow-y-auto" onClick={(e: React.MouseEvent<HTMLDivElement>) => e.stopPropagation()}>
+          <div className="bg-white rounded-lg p-[30px] max-w-[500px] w-[90%] max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <div className="flex justify-between items-center mb-5">
-              <h2 className="text-2xl font-bold text-[#111827]">Request from Forever Donator</h2>
-              <button
-                className="bg-none border-none text-2xl cursor-pointer text-[#6b7280]"
-                onClick={() => {
-                  setShowDonatorModal(false)
-                  setSelectedDonator(null)
-                }}
-              >
-                ×
-              </button>
+              <h2 className="text-2xl font-bold text-[#111827]">Contact Donator</h2>
+              <button className="bg-none border-none text-2xl cursor-pointer text-[#6b7280]" onClick={() => setShowDonatorModal(false)}>×</button>
             </div>
-            <div>
-              <div className="mb-5">
-                <label className="block mb-2 font-semibold text-[#111827] text-sm">Donator:</label>
-                <input
-                  type="text"
-                  className="w-full py-2.5 px-[15px] border border-[#e5e7eb] rounded-lg text-sm focus:outline-none focus:border-[#dc2626]"
-                  value={selectedDonator.name}
-                  readOnly
-                />
+            
+            <div className="space-y-4">
+              <div className="p-4 bg-gray-50 rounded">
+                <p className="font-bold">{selectedDonator.first_name} {selectedDonator.last_name}</p>
+                <p>Phone: {selectedDonator.phone_num}</p>
+                <p>Blood: {selectedDonator.blood_type}</p>
               </div>
-              <div className="mb-5">
-                <label className="block mb-2 font-semibold text-[#111827] text-sm">Phone:</label>
-                <input
-                  type="text"
-                  className="w-full py-2.5 px-[15px] border border-[#e5e7eb] rounded-lg text-sm focus:outline-none focus:border-[#dc2626]"
-                  value={selectedDonator.phone}
-                  readOnly
-                />
-              </div>
-              <div className="mb-5">
-                <label className="block mb-2 font-semibold text-[#111827] text-sm">Blood Type:</label>
-                <input
-                  type="text"
-                  className="w-full py-2.5 px-[15px] border border-[#e5e7eb] rounded-lg text-sm focus:outline-none focus:border-[#dc2626]"
-                  value={selectedDonator.bloodType}
-                  readOnly
-                />
-              </div>
-              <div className="mb-5">
-                <label className="block mb-2 font-semibold text-[#111827] text-sm">Preferred Date:</label>
-                <input type="date" className="w-full py-2.5 px-[15px] border border-[#e5e7eb] rounded-lg text-sm focus:outline-none focus:border-[#dc2626]" />
-              </div>
-              <div className="mb-5">
-                <label className="block mb-2 font-semibold text-[#111827] text-sm">Preferred Time:</label>
-                <input type="time" className="w-full py-2.5 px-[15px] border border-[#e5e7eb] rounded-lg text-sm focus:outline-none focus:border-[#dc2626]" />
-              </div>
-              <div className="mb-5">
-                <label className="block mb-2 font-semibold text-[#111827] text-sm">Contact Method:</label>
-                <select className="w-full py-2.5 px-[15px] border border-[#e5e7eb] rounded-lg text-sm bg-white">
-                  <option>Phone Call</option>
-                  <option>SMS</option>
-                  <option>Both</option>
-                </select>
-              </div>
-              <div className="flex gap-2.5 justify-end">
-                <button
-                  className="py-2.5 px-5 border-none rounded-lg text-sm font-semibold cursor-pointer transition-all duration-300 inline-flex items-center gap-2 bg-white text-[#111827] border border-[#e5e7eb] hover:bg-[#f9fafb]"
-                  onClick={() => {
-                    setShowDonatorModal(false)
-                    setSelectedDonator(null)
-                  }}
-                >
-                  Cancel
-                </button>
-                <button className="py-2.5 px-5 border-none rounded-lg text-sm font-semibold cursor-pointer transition-all duration-300 inline-flex items-center gap-2 bg-[#dc2626] text-white hover:bg-[#dc2626]-hover">Send Request</button>
+
+              <div className="flex gap-2">
+                 <button className="flex-1 py-2 bg-green-600 text-white rounded hover:bg-green-700">Call Now</button>
+                 <button className="flex-1 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Send SMS</button>
               </div>
             </div>
           </div>
@@ -473,4 +514,3 @@ export default function RequestsPage() {
     </HospitalLayout>
   )
 }
-

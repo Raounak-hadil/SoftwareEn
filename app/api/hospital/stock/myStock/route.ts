@@ -34,17 +34,29 @@ export async function GET() {
     hospitalError = emailErr;
   }
 
-  if (hospitalError || !hospital)
+  if (hospitalError || !hospital) {
+    console.error("Hospital lookup error:", hospitalError);
     return NextResponse.json({ error: "Not hospital account" }, { status: 403 });
+  }
 
-  // fetch stock
+  console.log("Fetching stock for hospital ID:", hospital.id);
+
+  // fetch stock - use select('*') to get all columns in case structure differs
   const { data: stock, error } = await supabase
     .from("stock")
-    .select("blood_type, quantity")
+    .select("*")
     .eq("hospital_id", hospital.id);
 
-  if (error)
+  if (error) {
+    console.error("Stock fetch error:", error);
     return NextResponse.json({ error: error.message }, { status: 400 });
+  }
 
-  return NextResponse.json({ success: true, stock });
+  console.log("Stock fetched:", stock?.length || 0, "items");
+
+  return NextResponse.json({ 
+    success: true, 
+    stock: stock || [],
+    hospital_id: hospital.id 
+  });
 }

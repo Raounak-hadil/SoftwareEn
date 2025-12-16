@@ -1,6 +1,37 @@
 'use client'
 
+import { useEffect, useState } from 'react'
+
+interface HospitalProfile {
+  hosname?: string
+  name?: string
+  email?: string
+}
+
 export default function Header() {
+  const [hospitalName, setHospitalName] = useState<string>('Hospital Admin')
+  const [hospitalSubtitle, setHospitalSubtitle] = useState<string>('')
+
+  useEffect(() => {
+    const fetchHospitalProfile = async () => {
+      try {
+        const res = await fetch('/api/hospital/profile')
+        if (!res.ok) return
+        const data: HospitalProfile = await res.json()
+
+        const name = data.hosname || data.name || 'Hospital Admin'
+        setHospitalName(name)
+        if (data.email) {
+          setHospitalSubtitle(data.email)
+        }
+      } catch (err) {
+        console.error('Failed to load hospital profile', err)
+      }
+    }
+
+    fetchHospitalProfile()
+  }, [])
+
   return (
     <header className="bg-white py-[15px] px-[30px] border-b border-[#e5e7eb] flex items-center justify-between sticky top-0 z-[100]">
       <div className="flex-1 max-w-[500px] mx-[30px] relative">
@@ -45,8 +76,10 @@ export default function Header() {
         </div>
 
         <div className="flex flex-col">
-          <div className="font-semibold text-sm text-[#111827]">Hospital Admin</div>
-          <div className="text-xs text-[#6b7280]">CHU Mustapha</div>
+          <div className="font-semibold text-sm text-[#111827]">{hospitalName}</div>
+          {hospitalSubtitle && (
+            <div className="text-xs text-[#6b7280]">{hospitalSubtitle}</div>
+          )}
         </div>
 
         <svg

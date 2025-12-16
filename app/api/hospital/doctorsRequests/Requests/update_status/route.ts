@@ -30,7 +30,7 @@ export async function POST(req: Request) {
     .from("doctors_requests")
     .update({ status: new_status })
     .eq("id", request_id)          
-    .eq("hospital_id", hospital.id); // Hospital must own the request
+    .eq("Hospital_id", hospital.id); // Hospital must own the request
 
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
 
