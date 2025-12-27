@@ -55,6 +55,19 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Profile not found" }, { status: 404 });
     }
 
+    // Fetch associated hospital name if exists
+    if (profile.Hospital_id) {
+      const { data: hospData } = await supabase
+        .from('hospitals')
+        .select('hosname')
+        .eq('id', profile.Hospital_id)
+        .single();
+
+      if (hospData) {
+        (profile as any).hospitals = hospData;
+      }
+    }
+
     // Get available sessions for this doctor
     const { data: sessions } = await supabase
       .from('sessions')

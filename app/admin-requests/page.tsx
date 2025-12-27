@@ -5,8 +5,10 @@ import { useEffect, useMemo, useState } from 'react';
 import AdminNavbar from '@/components/ui/AdminNavbar';
 
 type RequestRow = {
-  from: string;
-  forHospital: string;
+  fromId: string;
+  fromName: string;
+  forId: string;
+  forName: string;
   requestedBy: string;
   date: string;
   type: string;
@@ -40,7 +42,7 @@ const AdminRequests = () => {
     if (!searchQuery.trim()) return requests;
     const query = searchQuery.toLowerCase();
     return requests.filter((request) =>
-      [request.from, request.forHospital, request.requestedBy, request.status].some((field) => field.toLowerCase().includes(query)),
+      [request.fromId, request.fromName, request.forId, request.forName, request.requestedBy, request.status].some((field) => field.toLowerCase().includes(query)),
     );
   }, [searchQuery, requests]);
 
@@ -57,8 +59,10 @@ const AdminRequests = () => {
         const json = await res.json();
         const data = Array.isArray(json?.data) ? json.data : [];
         const mapped: RequestRow[] = data.map((r: any) => ({
-          from: String(r.hospital_from_id ?? r.from ?? ''),
-          forHospital: String(r.hospital_to_id ?? r.for ?? ''),
+          fromId: String(r.hospital_from_id ?? ''),
+          fromName: r.hospital_from?.hosname || '—',
+          forId: String(r.hospital_to_id ?? ''),
+          forName: r.hospital_to?.hosname || '—',
           requestedBy: String(r.requested_by ?? r.requestedBy ?? r.created_by ?? '—'),
           date: r.date ? new Date(r.date).toLocaleDateString() : (r.created_at ? new Date(r.created_at).toLocaleDateString() : ''),
           type: String(r.blood_type ?? r.type ?? ''),
@@ -105,7 +109,7 @@ const AdminRequests = () => {
                 <div key={`${request.requestedBy}-${index}`} className='p-4 bg-white hover:bg-gray-50'>
                   <div className='flex justify-between items-start mb-2'>
                     <div className='flex-1'>
-                      <p className='text-sm font-medium text-gray-900'>{request.from}</p>
+                      <p className='text-sm font-medium text-gray-900'>{request.fromName} (ID: {request.fromId})</p>
                       <p className='text-xs text-gray-500 mt-1'>{request.requestedBy}</p>
                     </div>
                     <span className='px-2 py-1 text-xs font-semibold text-[#C50000] bg-red-50 rounded-full'>{request.status}</span>
@@ -113,7 +117,7 @@ const AdminRequests = () => {
                   <div className='mt-3 space-y-1 text-xs text-gray-600'>
                     <div className='flex justify-between'>
                       <span className='text-gray-500'>For:</span>
-                      <span className='text-gray-900'>{request.forHospital}</span>
+                      <span className='text-gray-900'>{request.forName} (ID: {request.forId})</span>
                     </div>
                     <div className='flex justify-between'>
                       <span className='text-gray-500'>Date:</span>
@@ -133,7 +137,7 @@ const AdminRequests = () => {
               <table className='w-full min-w-[720px]'>
                 <thead>
                   <tr className='bg-gray-50 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider'>
-                    {['From', 'For', 'Date', 'Type', 'Status'].map((header) => (
+                    {['ID From', 'Hospital From', 'ID To', 'Hospital To', 'Date', 'Type', 'Status'].map((header) => (
                       <th key={header} className='px-4 lg:px-6 py-3'>
                         {header}
                       </th>
@@ -144,10 +148,12 @@ const AdminRequests = () => {
                   {pageItems.map((request, index) => (
                     <tr key={`${request.requestedBy}-${index}`} className='hover:bg-gray-50'>
                       <td className='px-4 lg:px-6 py-4 text-sm'>
-                        <div className='text-gray-900 font-medium'>{request.from}</div>
+                        <div className='text-gray-900 font-medium'>{request.fromId}</div>
                         <div className='text-xs text-gray-500 mt-1'>{request.requestedBy}</div>
                       </td>
-                      <td className='px-4 lg:px-6 py-4 text-sm text-gray-900'>{request.forHospital}</td>
+                      <td className='px-4 lg:px-6 py-4 text-sm text-gray-900'>{request.fromName}</td>
+                      <td className='px-4 lg:px-6 py-4 text-sm text-gray-900'>{request.forId}</td>
+                      <td className='px-4 lg:px-6 py-4 text-sm text-gray-900'>{request.forName}</td>
                       <td className='px-4 lg:px-6 py-4 text-sm text-gray-600'>{request.date}</td>
                       <td className='px-4 lg:px-6 py-4 text-sm text-gray-600'>{request.type}</td>
                       <td className='px-4 lg:px-6 py-4 text-sm font-semibold text-[#C50000]'>{request.status}</td>

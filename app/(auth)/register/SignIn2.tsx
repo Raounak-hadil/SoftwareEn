@@ -1,9 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import '../../../assets/styles/SignIn.css'
 import Select from "react-select";
+import FancyAlert from "@/components/ui/FancyAlert";
 
 const options = [
   { value: "algeria", label: "Algeria" },
@@ -36,7 +38,32 @@ const customStyles = {
 export default function SignIn2() {
 
   const [isHospital, setIsHospital] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
   const router = useRouter(); // ✅
+
+  // Hospital selection state
+  const [hospitals, setHospitals] = useState<any[]>([]);
+  const [selectedHospital, setSelectedHospital] = useState<any>(null);
+  const [loadingHospitals, setLoadingHospitals] = useState(false);
+
+  // Fetch hospitals on component mount
+  useEffect(() => {
+    const fetchHospitals = async () => {
+      setLoadingHospitals(true);
+      try {
+        const res = await fetch('/api/hospitals_list');
+        const data = await res.json();
+        if (res.ok && data.hospitals) {
+          setHospitals(data.hospitals);
+        }
+      } catch (err) {
+        console.error('Error fetching hospitals:', err);
+      } finally {
+        setLoadingHospitals(false);
+      }
+    };
+    fetchHospitals();
+  }, []);
 
   const goToHospital = () => {
     setIsHospital(true);
@@ -82,7 +109,7 @@ export default function SignIn2() {
         e.preventDefault();
         const form = e.currentTarget as HTMLFormElement;
         const fd = new FormData(form);
-        const payload = {
+        const payload: any = {
           first_name: String(fd.get('first_name') || ''),
           last_name: String(fd.get('last_name') || ''),
           email: String(fd.get('email') || ''),
@@ -90,6 +117,11 @@ export default function SignIn2() {
           speciality: String(fd.get('speciality') || ''),
           password: String(fd.get('password') || '')
         };
+
+        // Add hospital ID if selected
+        if (selectedHospital) {
+          payload.hospitalIds = [selectedHospital.value];
+        }
 
         try {
           const res = await fetch('/api/auth/doctor/signup', {
@@ -99,10 +131,10 @@ export default function SignIn2() {
           });
           const json = await res.json();
           if (!res.ok) throw new Error(json?.error || 'Signup failed');
-          // on success redirect to login
-          alert('Doctor registered successfully');
+          // on success redirect to login - removing alert as requested
+          router.push('/login?type=doctor');
         } catch (err: any) {
-          alert(err.message || 'Signup error');
+          setErrorMsg(err.message || 'Signup error');
         }
       }}>
         <div style={{ display: 'flex flex-col', gap: '10px' }}>
@@ -113,23 +145,43 @@ export default function SignIn2() {
         <input name="email" placeholder="Official email*" className="input" required />
         <input name="phone" placeholder="Phone number*" className="input" required />
         <input name="speciality" placeholder="Speciality*" className="input" required />
+
+        {/* Hospital Selection */}
+        <Select
+          options={hospitals.map(h => ({ value: h.id, label: h.hosname }))}
+          value={selectedHospital}
+          onChange={setSelectedHospital}
+          placeholder="Select Hospital*"
+          styles={customStyles}
+          isLoading={loadingHospitals}
+          required
+        />
+
         <input name="password" placeholder="Password*" className="input" type="password" required />
         <input name="confirm_password" placeholder="Confirm Password*" className="input" type="password" required />
 
-        <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-          <label className='input' htmlFor="file-upload" style={{ backgroundColor: "white", color: "#cd8181" }}>
-            Select a file
-          </label>
-          <input id="file-upload" type="file" style={{ display: "none" }} />
-        </div>
-
         <div className="terms">
           <input type="checkbox" className="check" />
-          <label htmlFor="terms">I agree to the terms and conditions</label>
+          <label htmlFor="terms" className="fancy-terms">I agree to the terms and conditions</label>
         </div>
 
         <button className="submit">SignUp</button>
+
+        <div className="fancy-auth-link">
+          <span>Already have an account?</span>
+          <Link href="/login?type=doctor">
+            <span className="link-text">Log in</span>
+          </Link>
+        </div>
       </form>
+
+      {errorMsg && (
+        <FancyAlert
+          message={errorMsg}
+          onClose={() => setErrorMsg("")}
+          type="error"
+        />
+      )}
     </div>
   );
 }

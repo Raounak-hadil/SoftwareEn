@@ -8,12 +8,14 @@ body {
     margin: 0;
     padding: 0;
     width: 100%;
-    height: 1100px;
+    min-height: 100vh;
     font-weight: bold;
     background-image: linear-gradient(to left, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url(../images/backg.jpg);
     background-repeat: no-repeat;
     background-position: center;
     background-size: cover;
+    background-attachment: fixed;
+    height: auto;
 }
 
 
@@ -190,11 +192,47 @@ input[type="date"] {
 .terms {
     display: flex;
     flex-direction: row;
-    justify-content: space-between;
-    width: 270px;
+    justify-content: flex-start;
+    align-items: center;
+    width: 100%;
     margin-bottom: 20px;
 }
 
 .check {
-    width: 10px;
+    width: 18px;
+    height: 18px;
+    accent-color: #C50000;
+}
+
+.fancy-auth-link {
+    display: flex;
+    gap: 8px;
+    font-size: 1.1rem;
+    font-weight: 300;
+    color: white !important;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+    margin-top: 20px;
+    align-items: center;
+}
+
+.fancy-auth-link .link-text {
+    color: #ff4d4d !important;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    border-bottom: 2px solid transparent;
+}
+
+.fancy-auth-link .link-text:hover {
+    border-bottom-color: #ff4d4d;
+    text-shadow: 0 0 15px rgba(255, 77, 77, 0.5);
+}
+
+.fancy-terms {
+    color: white !important;
+    font-size: 0.95rem;
+    font-weight: 300;
+    text-shadow: 0 0 5px rgba(255, 255, 255, 0.2);
+    margin-left: 10px;
 }

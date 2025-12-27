@@ -65,9 +65,8 @@ const Navbar = ({ onLoginClick }: NavbarProps): JSX.Element => {
   return (
     <>
       <header
-        className={`hidden md:block fixed top-0 left-0 right-0 z-50 bg-white transition-shadow duration-300 ${
-          scrolled ? "shadow-md" : ""
-        }`}
+        className={`hidden md:block fixed top-0 left-0 right-0 z-50 bg-white transition-shadow duration-300 ${scrolled ? "shadow-md" : ""
+          }`}
       >
         <div className="flex items-center justify-end px-8 h-16 max-w-7xl mx-auto">
           <nav className="flex items-center gap-6">
@@ -79,11 +78,10 @@ const Navbar = ({ onLoginClick }: NavbarProps): JSX.Element => {
                   key={item.id}
                   type="button"
                   onClick={() => handleNavClick(item)}
-                  className={`text-sm font-medium transition-all duration-300 py-1 ${
-                    isActive
+                  className={`text-sm font-medium transition-all duration-300 py-1 ${isActive
                       ? "text-gray-900 border-b-2 border-gray-900"
                       : "text-gray-700 hover:text-[#C50000]"
-                  }`}
+                    }`}
                 >
                   {item.label}
                 </button>
@@ -101,9 +99,8 @@ const Navbar = ({ onLoginClick }: NavbarProps): JSX.Element => {
       </header>
 
       <header
-        className={`md:hidden fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 ${
-          scrolled ? "shadow-md" : ""
-        }`}
+        className={`md:hidden fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 ${scrolled ? "shadow-md" : ""
+          }`}
       >
         <div className="flex items-center justify-between px-4 h-16">
           <span className="text-lg font-bold text-[#C50000]">BloodManagement</span>
@@ -115,28 +112,24 @@ const Navbar = ({ onLoginClick }: NavbarProps): JSX.Element => {
           >
             <div className="relative w-6 h-6">
               <span
-                className={`absolute top-0 left-0 w-6 h-0.5 bg-gray-900 transition-all duration-300 ${
-                  isMenuOpen ? "rotate-45 top-2.5" : ""
-                }`}
+                className={`absolute top-0 left-0 w-6 h-0.5 bg-gray-900 transition-all duration-300 ${isMenuOpen ? "rotate-45 top-2.5" : ""
+                  }`}
               />
               <span
-                className={`absolute top-2.5 left-0 w-6 h-0.5 bg-gray-900 transition-all duration-300 ${
-                  isMenuOpen ? "opacity-0" : ""
-                }`}
+                className={`absolute top-2.5 left-0 w-6 h-0.5 bg-gray-900 transition-all duration-300 ${isMenuOpen ? "opacity-0" : ""
+                  }`}
               />
               <span
-                className={`absolute top-5 left-0 w-6 h-0.5 bg-gray-900 transition-all duration-300 ${
-                  isMenuOpen ? "-rotate-45 top-2.5" : ""
-                }`}
+                className={`absolute top-5 left-0 w-6 h-0.5 bg-gray-900 transition-all duration-300 ${isMenuOpen ? "-rotate-45 top-2.5" : ""
+                  }`}
               />
             </div>
           </button>
         </div>
 
         <div
-          className={`bg-white border-t border-gray-200 transition-all duration-300 overflow-hidden ${
-            isMenuOpen ? "max-h-[500px]" : "max-h-0"
-          }`}
+          className={`bg-white border-t border-gray-200 transition-all duration-300 overflow-hidden ${isMenuOpen ? "max-h-[500px]" : "max-h-0"
+            }`}
         >
           <div className="px-6 py-4 space-y-3">
             {NAV_ITEMS.map((item) => (
@@ -144,9 +137,8 @@ const Navbar = ({ onLoginClick }: NavbarProps): JSX.Element => {
                 key={item.id}
                 type="button"
                 onClick={() => handleNavClick(item)}
-                className={`w-full text-left py-2 ${
-                  activeSection === item.target ? "text-[#C50000] font-semibold" : "text-gray-700"
-                }`}
+                className={`w-full text-left py-2 ${activeSection === item.target ? "text-[#C50000] font-semibold" : "text-gray-700"
+                  }`}
               >
                 {item.label}
               </button>

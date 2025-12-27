@@ -52,6 +52,7 @@ interface DonationRequest {
 
 export default function StockPage() {
   const [activeTab, setActiveTab] = useState<'stock' | 'donators' | 'forever-donators'>('stock')
+  const [hospitalName, setHospitalName] = useState<string>('Loading...')
   const [stock, setStock] = useState<StockUnit[]>([])
   const [loading, setLoading] = useState<boolean>(true)
   const [donators, setDonators] = useState<Donator[]>([])
@@ -209,7 +210,7 @@ export default function StockPage() {
 
       const data = await res.json()
       console.log('Update response:', data)
-      
+
       if (!res.ok || !data.success) {
         alert(data.error || 'Failed to update stock')
         return
@@ -232,20 +233,25 @@ export default function StockPage() {
       setLoading(true)
       const res = await fetch('/api/hospital/stock/myStock', { credentials: 'include' });
       const json = await res.json();
-      
+
       console.log('Stock API Response:', json); // Debug log
-      
+
       if (!res.ok) {
         console.error('Stock API Error:', json.error || `HTTP ${res.status}`);
         setStock([]);
+        setHospitalName('Error loading hospital');
         return;
       }
-      
+
+      if (json.hospital_name) {
+        setHospitalName(json.hospital_name);
+      }
+
       // API returns { success: true, stock: [...] }
       if (json?.success !== false && json?.stock !== undefined) {
         const stockArray = Array.isArray(json.stock) ? json.stock : [];
         console.log('Stock array length:', stockArray.length); // Debug log
-        
+
         const mappedStock = stockArray
           .filter((s: any) => s && (s.blood_type || s.bloodType)) // Filter out invalid entries
           .map((s: any) => ({
@@ -255,7 +261,7 @@ export default function StockPage() {
             quantity: Number(s.quantity) || 0,
             date: s.created_at ? new Date(s.created_at).toLocaleDateString() : (s.date || '')
           }));
-        
+
         console.log('Mapped stock:', mappedStock); // Debug log
         setStock(mappedStock);
       } else {
@@ -328,9 +334,9 @@ export default function StockPage() {
   return (
     <HospitalLayout>
       <div className="flex justify-between items-center mb-[30px]">
-        <h1 className="text-[32px] font-bold text-[#111827] mb-[30px]">CHU Mustapha</h1>
-        <button 
-          className="py-2.5 px-5 border-none rounded-lg text-sm font-semibold cursor-pointer transition-all duration-300 inline-flex items-center gap-2 bg-[#dc2626] text-white hover:bg-[#dc2626]-hover" 
+        <h1 className="text-[32px] font-bold text-[#111827] mb-[30px]">{hospitalName}</h1>
+        <button
+          className="py-2.5 px-5 border-none rounded-lg text-sm font-semibold cursor-pointer transition-all duration-300 inline-flex items-center gap-2 bg-[#dc2626] text-white hover:bg-[#dc2626]-hover"
           onClick={() => setShowAddModal(true)}
         >
           Add New Unit
@@ -339,31 +345,28 @@ export default function StockPage() {
 
       <div className="flex gap-2.5 mb-[30px]">
         <button
-          className={`py-2.5 px-5 border-none rounded-lg text-sm font-semibold cursor-pointer transition-all duration-300 ${
-            activeTab === 'stock' 
-              ? 'bg-[#dc2626] text-white' 
-              : 'bg-white text-[#dc2626] border border-[#dc2626]'
-          }`}
+          className={`py-2.5 px-5 border-none rounded-lg text-sm font-semibold cursor-pointer transition-all duration-300 ${activeTab === 'stock'
+            ? 'bg-[#dc2626] text-white'
+            : 'bg-white text-[#dc2626] border border-[#dc2626]'
+            }`}
           onClick={() => setActiveTab('stock')}
         >
           Stock
         </button>
         <button
-          className={`py-2.5 px-5 border-none rounded-lg text-sm font-semibold cursor-pointer transition-all duration-300 ${
-            activeTab === 'donators' 
-              ? 'bg-[#dc2626] text-white' 
-              : 'bg-white text-[#dc2626] border border-[#dc2626]'
-          }`}
+          className={`py-2.5 px-5 border-none rounded-lg text-sm font-semibold cursor-pointer transition-all duration-300 ${activeTab === 'donators'
+            ? 'bg-[#dc2626] text-white'
+            : 'bg-white text-[#dc2626] border border-[#dc2626]'
+            }`}
           onClick={() => setActiveTab('donators')}
         >
           Donators
         </button>
         <button
-          className={`py-2.5 px-5 border-none rounded-lg text-sm font-semibold cursor-pointer transition-all duration-300 ${
-            activeTab === 'forever-donators' 
-              ? 'bg-[#dc2626] text-white' 
-              : 'bg-white text-[#dc2626] border border-[#dc2626]'
-          }`}
+          className={`py-2.5 px-5 border-none rounded-lg text-sm font-semibold cursor-pointer transition-all duration-300 ${activeTab === 'forever-donators'
+            ? 'bg-[#dc2626] text-white'
+            : 'bg-white text-[#dc2626] border border-[#dc2626]'
+            }`}
           onClick={() => setActiveTab('forever-donators')}
         >
           Forever Donators
@@ -400,8 +403,8 @@ export default function StockPage() {
                         <td className="p-[15px] border-b border-[#e5e7eb] text-[#111827] text-sm">{item.date}</td>
                         <td className="p-[15px] border-b border-[#e5e7eb] text-[#111827] text-sm">
                           <div className="flex gap-2">
-                            <button 
-                              className="py-1.5 px-3 border-none rounded-lg text-xs font-semibold cursor-pointer transition-all duration-300 inline-flex items-center gap-2 bg-[#dc2626] text-white hover:bg-[#b91c1c]" 
+                            <button
+                              className="py-1.5 px-3 border-none rounded-lg text-xs font-semibold cursor-pointer transition-all duration-300 inline-flex items-center gap-2 bg-[#dc2626] text-white hover:bg-[#b91c1c]"
                               onClick={() => handleUpdateClick(item)}
                             >
                               Update
@@ -446,12 +449,11 @@ export default function StockPage() {
                   <td className="p-[15px] border-b border-[#e5e7eb] text-[#111827] text-sm">{request.phone_num}</td>
                   <td className="p-[15px] border-b border-[#e5e7eb] text-[#111827] text-sm font-bold">{request.blood_type}</td>
                   <td className="p-[15px] border-b border-[#e5e7eb] text-[#111827] text-sm">
-                    <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                      request.status === 'Completed' ? 'bg-green-100 text-green-600' :
+                    <span className={`px-2 py-1 rounded-full text-xs font-semibold ${request.status === 'Completed' ? 'bg-green-100 text-green-600' :
                       request.status === 'Scheduled' ? 'bg-blue-100 text-blue-600' :
-                      request.status === 'Pending' ? 'bg-yellow-100 text-yellow-600' :
-                      'bg-gray-100 text-gray-600'
-                    }`}>
+                        request.status === 'Pending' ? 'bg-yellow-100 text-yellow-600' :
+                          'bg-gray-100 text-gray-600'
+                      }`}>
                       {request.status}
                     </span>
                   </td>
@@ -549,9 +551,9 @@ export default function StockPage() {
             <div>
               <div className="mb-5">
                 <label className="block mb-2 font-semibold text-[#111827] text-sm">Blood Type:</label>
-                <select 
-                  className="w-full py-2.5 px-[15px] border border-[#e5e7eb] rounded-lg text-sm bg-white" 
-                  value={newStock.blood_type} 
+                <select
+                  className="w-full py-2.5 px-[15px] border border-[#e5e7eb] rounded-lg text-sm bg-white"
+                  value={newStock.blood_type}
                   onChange={e => setNewStock(ns => ({ ...ns, blood_type: e.target.value }))}
                 >
                   <option value="">Select Blood Type</option>
@@ -567,35 +569,35 @@ export default function StockPage() {
               </div>
               <div className="mb-5">
                 <label className="block mb-2 font-semibold text-[#111827] text-sm">Quantity:</label>
-                <input 
-                  type="number" 
-                  className="w-full py-2.5 px-[15px] border border-[#e5e7eb] rounded-lg text-sm focus:outline-none focus:border-[#dc2626]" 
-                  value={newStock.quantity || ''} 
+                <input
+                  type="number"
+                  className="w-full py-2.5 px-[15px] border border-[#e5e7eb] rounded-lg text-sm focus:outline-none focus:border-[#dc2626]"
+                  value={newStock.quantity || ''}
                   onChange={e => {
                     const val = e.target.value === '' ? 0 : parseInt(e.target.value, 10) || 0
                     setNewStock(ns => ({ ...ns, quantity: val }))
-                  }} 
-                  min="1" 
+                  }}
+                  min="1"
                 />
               </div>
               <div className="mb-5">
                 <label className="block mb-2 font-semibold text-[#111827] text-sm">Date:</label>
-                <input 
-                  type="date" 
-                  className="w-full py-2.5 px-[15px] border border-[#e5e7eb] rounded-lg text-sm focus:outline-none focus:border-[#dc2626]" 
-                  value={newStock.date} 
-                  onChange={e => setNewStock(ns => ({ ...ns, date: e.target.value }))} 
+                <input
+                  type="date"
+                  className="w-full py-2.5 px-[15px] border border-[#e5e7eb] rounded-lg text-sm focus:outline-none focus:border-[#dc2626]"
+                  value={newStock.date}
+                  onChange={e => setNewStock(ns => ({ ...ns, date: e.target.value }))}
                 />
               </div>
               <div className="flex gap-2.5 justify-end">
-                <button 
-                  className="py-2.5 px-5 border-none rounded-lg text-sm font-semibold cursor-pointer transition-all duration-300 inline-flex items-center gap-2 bg-white text-[#111827] border border-[#e5e7eb] hover:bg-[#f9fafb]" 
+                <button
+                  className="py-2.5 px-5 border-none rounded-lg text-sm font-semibold cursor-pointer transition-all duration-300 inline-flex items-center gap-2 bg-white text-[#111827] border border-[#e5e7eb] hover:bg-[#f9fafb]"
                   onClick={() => setShowAddModal(false)}
                 >
                   Cancel
                 </button>
-                <button 
-                  className="py-2.5 px-5 border-none rounded-lg text-sm font-semibold cursor-pointer transition-all duration-300 inline-flex items-center gap-2 bg-[#dc2626] text-white hover:bg-[#dc2626]-hover" 
+                <button
+                  className="py-2.5 px-5 border-none rounded-lg text-sm font-semibold cursor-pointer transition-all duration-300 inline-flex items-center gap-2 bg-[#dc2626] text-white hover:bg-[#dc2626]-hover"
                   onClick={handleAddUnit}
                 >
                   Add Unit
@@ -616,10 +618,10 @@ export default function StockPage() {
             <div>
               <div className="mb-5">
                 <label className="block mb-2 font-semibold text-[#111827] text-sm">Blood Type:</label>
-                <select 
-                  className="w-full py-2.5 px-[15px] border border-[#e5e7eb] rounded-lg text-sm bg-white" 
-                  value={editStock.blood_type} 
-                  onChange={e => setEditStock({...editStock, blood_type: e.target.value})}
+                <select
+                  className="w-full py-2.5 px-[15px] border border-[#e5e7eb] rounded-lg text-sm bg-white"
+                  value={editStock.blood_type}
+                  onChange={e => setEditStock({ ...editStock, blood_type: e.target.value })}
                 >
                   <option value="">Select Blood Type</option>
                   <option>O+</option>
@@ -634,35 +636,35 @@ export default function StockPage() {
               </div>
               <div className="mb-5">
                 <label className="block mb-2 font-semibold text-[#111827] text-sm">Quantity:</label>
-                <input 
-                  type="number" 
-                  className="w-full py-2.5 px-[15px] border border-[#e5e7eb] rounded-lg text-sm focus:outline-none focus:border-[#dc2626]" 
-                  value={editStock.quantity || ''} 
+                <input
+                  type="number"
+                  className="w-full py-2.5 px-[15px] border border-[#e5e7eb] rounded-lg text-sm focus:outline-none focus:border-[#dc2626]"
+                  value={editStock.quantity || ''}
                   onChange={e => {
                     const val = e.target.value === '' ? 0 : parseInt(e.target.value, 10) || 0
-                    setEditStock({...editStock, quantity: val})
-                  }} 
-                  min="1" 
+                    setEditStock({ ...editStock, quantity: val })
+                  }}
+                  min="1"
                 />
               </div>
               <div className="mb-5">
                 <label className="block mb-2 font-semibold text-[#111827] text-sm">Date:</label>
-                <input 
-                  type="date" 
-                  className="w-full py-2.5 px-[15px] border border-[#e5e7eb] rounded-lg text-sm focus:outline-none focus:border-[#dc2626]" 
-                  value={editStock.date} 
-                  onChange={e => setEditStock({...editStock, date: e.target.value})} 
+                <input
+                  type="date"
+                  className="w-full py-2.5 px-[15px] border border-[#e5e7eb] rounded-lg text-sm focus:outline-none focus:border-[#dc2626]"
+                  value={editStock.date}
+                  onChange={e => setEditStock({ ...editStock, date: e.target.value })}
                 />
               </div>
               <div className="flex gap-2.5 justify-end">
-                <button 
-                  className="py-2.5 px-5 border-none rounded-lg text-sm font-semibold cursor-pointer transition-all duration-300 inline-flex items-center gap-2 bg-white text-[#111827] border border-[#e5e7eb] hover:bg-[#f9fafb]" 
+                <button
+                  className="py-2.5 px-5 border-none rounded-lg text-sm font-semibold cursor-pointer transition-all duration-300 inline-flex items-center gap-2 bg-white text-[#111827] border border-[#e5e7eb] hover:bg-[#f9fafb]"
                   onClick={() => setShowUpdateModal(false)}
                 >
                   Cancel
                 </button>
-                <button 
-                  className="py-2.5 px-5 border-none rounded-lg text-sm font-semibold cursor-pointer transition-all duration-300 inline-flex items-center gap-2 bg-[#dc2626] text-white hover:bg-[#dc2626]-hover" 
+                <button
+                  className="py-2.5 px-5 border-none rounded-lg text-sm font-semibold cursor-pointer transition-all duration-300 inline-flex items-center gap-2 bg-[#dc2626] text-white hover:bg-[#dc2626]-hover"
                   onClick={handleSaveUpdate}
                 >
                   Save Update

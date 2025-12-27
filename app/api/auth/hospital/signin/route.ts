@@ -1,28 +1,44 @@
-import { NextResponse } from "next/server";
-import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs";
+import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { NextResponse } from "next/server";
+import { generateToken } from "@/utils/auth";
 
 export async function POST(req: Request) {
-  const supabase = createRouteHandlerClient({ cookies });
-  
+  const cookieStore = await cookies();
+
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return cookieStore.getAll();
+        },
+        setAll(cookiesToSet) {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) =>
+              cookieStore.set(name, value, options)
+            );
+          } catch {
+            // The `setAll` method was called from a Server Component.
+          }
+        },
+      },
+    }
+  );
+
   let body;
   try {
     body = await req.json();
-    console.log("Login body:", body);
   } catch (err) {
-    console.error("Failed to parse JSON:", err);
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
   const { email, password } = body;
 
   if (!email || !password) {
-    console.log("Email or password missing");
     return NextResponse.json({ error: "Email & password required" }, { status: 400 });
   }
-
-  // Log before calling Supabase
-  console.log("Attempting login for email:", email);
 
   const { data, error } = await supabase.auth.signInWithPassword({
     email,
@@ -30,11 +46,31 @@ export async function POST(req: Request) {
   });
 
   if (error) {
-    console.error("Supabase login error:", error);
     return NextResponse.json({ error: "Invalid email or password", details: error }, { status: 401 });
   }
 
-  console.log("Login successful:", data.user?.id);
+  const { data: hospital, error: hospitalError } = await supabase
+    .from("hospitals")
+    .select("id, role, hosname")
+    .eq("auth_id", data.user.id)
+    .single();
 
-  return NextResponse.json({ success: true, user: data.user });
+  if (hospitalError || !hospital) {
+    await supabase.auth.signOut();
+    return NextResponse.json({ error: "Access denied: This account is not registered as a hospital." }, { status: 403 });
+  }
+
+  const token = generateToken({
+    email: data.user.email!,
+    id: hospital.id.toString(),
+    role: hospital.role || 'hospital',
+  });
+
+  return NextResponse.json({
+    success: true,
+    user: data.user,
+    role: hospital.role,
+    token: token,
+    hospital_name: hospital.hosname
+  });
 }

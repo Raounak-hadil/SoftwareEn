@@ -27,31 +27,13 @@ type Doctor = {
   image?: string | null;
 };
 
-const INITIAL_HOSPITALS: Hospital[] = [
-  { id: '00001', name: 'CHU Mustapha', address: '089 Kutch Green Apt. 448', type: 'Public' },
-  { id: '00002', name: 'CHU Mustapha', address: '979 Immanuel Perry Suite 526', type: 'Private' },
-  { id: '00003', name: 'CHU Mustapha', address: '123 Main Street', type: 'Public' },
-  { id: '00004', name: 'CHU Mustapha', address: '456 Oak Avenue', type: 'Private' },
-];
+const INITIAL_HOSPITALS: Hospital[] = [];
 
 const INITIAL_STOCK: StockUnit[] = [
 
 ];
 
-const INITIAL_DOCTORS: Doctor[] = [
-  {
-    id: 1,
-    name: 'Jason Price',
-    email: 'jason.price@cityhospital.com',
-    image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=900&q=80',
-  },
-  {
-    id: 2,
-    name: 'Rosie Glover',
-    email: 'rosie.glover@cityhospital.com',
-    image: 'https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&fit=crop&w=900&q=80',
-  },
-];
+const INITIAL_DOCTORS: Doctor[] = [];
 
 const AdminHospitals = () => {
   const [selectedHospital, setSelectedHospital] = useState<Hospital | null>(null);
@@ -73,6 +55,7 @@ const AdminHospitals = () => {
   const [stockData, setStockData] = useState<StockUnit[]>(INITIAL_STOCK);
   const [rawApiStock, setRawApiStock] = useState<any[] | null>(null);
   const [doctors, setDoctors] = useState<Doctor[]>(INITIAL_DOCTORS);
+  const [loadingDoctors, setLoadingDoctors] = useState<boolean>(false);
   const [confirmDeleteHospital, setConfirmDeleteHospital] = useState<Hospital | null>(null);
   const [deleting, setDeleting] = useState<boolean>(false);
 
@@ -105,11 +88,11 @@ const AdminHospitals = () => {
         const json = await res.json();
         const data = Array.isArray(json?.hospitals) ? json.hospitals : [];
         const mapped: Hospital[] = data.map((h: any) => ({
-          id: String(h.hosname ? (h.hosid ?? h.id ?? '') : (h.id ?? h.hospital_id ?? '')) || String(h.id ?? h.hospital_id ?? ''),
-          name: h.hosname ?? h.name ?? h.hos_name ?? '',
-          address: h.address ?? h.adress ?? h.location ?? '',
+          id: String(h.id || ''),
+          name: h.hosname || h.name || 'Unknown Hospital',
+          address: h.address || '',
           type: (h.type === 'Private' || h.type === 'private') ? 'Private' : 'Public',
-          apiId: h.id ?? h.hospital_id ?? h.hosid ?? h.hos_id ?? h.hosid ?? null,
+          apiId: h.id
         }));
         setHospitals(mapped.length ? mapped : INITIAL_HOSPITALS);
       } catch (err) {
@@ -144,22 +127,22 @@ const AdminHospitals = () => {
         }
         const apiStock = Array.isArray(json?.stock) ? json.stock : [];
         console.debug('byHospital apiStock length', apiStock.length, apiStock);
-        const mapped = apiStock.map((s: any, i: number) => {
-          const quantity = Number(s.quantity ?? s.qty ?? s.qte ?? s.count ?? s.available ?? s.quantity_available ?? 0) || 0;
-          const requests = Number(s.requests ?? s.requested ?? s.request_count ?? 0) || 0;
-          const type = String(s.blood_type ?? s.bloodType ?? s.type ?? s.btype ?? 'N/A');
-          const description = String(s.description ?? s.desc ?? s.notes ?? s.note ?? '');
+        const mapped = apiStock.map((s: any) => {
+          const quantity = Number(s.quantity ?? 0);
+          const requests = Number(s.requests ?? 0);
+          // Only show 'difference' if requests data is actually available, otherwise just quantity
+          const difference = quantity - requests;
+
           return {
-            type,
-            description,
+            type: String(s.blood_type ?? s.type ?? 'OB'),
+            description: s.description || '',
             quantity,
             requests,
-            difference: quantity - requests,
+            difference,
           };
         });
-        console.debug('mapped stock', mapped);
-        setRawApiStock(apiStock);
-        setStockData(mapped.length ? mapped : INITIAL_STOCK);
+        setStockData(mapped.length ? mapped : []); // Clear if empty
+        setRawApiStock(null); // No debug needed
       } catch (err) {
         console.error('Error fetching hospital stock by id:', err);
         setStockData(INITIAL_STOCK);
@@ -169,6 +152,43 @@ const AdminHospitals = () => {
     };
 
     fetchStockForHospital();
+  }, [selectedHospital]);
+
+  useEffect(() => {
+    if (!selectedHospital) return;
+    const fetchDoctorsForHospital = async () => {
+      setLoadingDoctors(true);
+      try {
+        const hospitalIdentifier = selectedHospital.apiId ?? selectedHospital.id;
+        const res = await fetch(`/api/hospital/doctors/myDoctors?hospital_id=${encodeURIComponent(String(hospitalIdentifier))}`);
+        if (!res.ok) {
+          console.warn('Failed to fetch hospital doctors for', selectedHospital.id, res.status);
+          setDoctors(INITIAL_DOCTORS);
+          return;
+        }
+        const json = await res.json();
+        if (json?.success === false) {
+          console.warn('API returned error for hospital doctors:', json.error);
+          setDoctors(INITIAL_DOCTORS);
+          return;
+        }
+        const apiDoctors = Array.isArray(json?.doctors) ? json.doctors : [];
+        const mapped: Doctor[] = apiDoctors.map((d: any) => ({
+          id: d.id,
+          name: `${d.first_name} ${d.last_name}`,
+          email: d.email,
+          image: null // API doesn't return image currently
+        }));
+        setDoctors(mapped);
+      } catch (err) {
+        console.error('Error fetching hospital doctors by id:', err);
+        setDoctors(INITIAL_DOCTORS);
+      } finally {
+        setLoadingDoctors(false);
+      }
+    };
+
+    fetchDoctorsForHospital();
   }, [selectedHospital]);
 
   useEffect(() => {
@@ -271,15 +291,14 @@ const AdminHospitals = () => {
                 <p className='text-xs text-gray-500 mt-1'>ID: {hospital.id}</p>
               </div>
               <span
-                className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                  hospital.type === 'Public' ? 'bg-green-50 text-green-700' : 'bg-blue-50 text-blue-700'
-                }`}
+                className={`px-2 py-1 text-xs font-semibold rounded-full ${hospital.type === 'Public' ? 'bg-green-50 text-green-700' : 'bg-blue-50 text-blue-700'
+                  }`}
               >
                 {hospital.type}
               </span>
             </div>
             <p className='text-xs text-gray-600 mb-3'>{hospital.address}</p>
-              <div className='flex gap-2 flex-wrap'>
+            <div className='flex gap-2 flex-wrap'>
               <button
                 type='button'
                 onClick={() => setSelectedHospital(hospital)}
@@ -319,9 +338,8 @@ const AdminHospitals = () => {
                 <td className='px-4 lg:px-6 py-4 text-sm text-gray-500'>{hospital.address}</td>
                 <td className='px-4 lg:px-6 py-4 text-sm'>
                   <span
-                    className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                      hospital.type === 'Public' ? 'bg-green-50 text-green-700' : 'bg-blue-50 text-blue-700'
-                    }`}
+                    className={`px-2 py-1 text-xs font-semibold rounded-full ${hospital.type === 'Public' ? 'bg-green-50 text-green-700' : 'bg-blue-50 text-blue-700'
+                      }`}
                   >
                     {hospital.type}
                   </span>
@@ -355,13 +373,6 @@ const AdminHospitals = () => {
   const renderStockTab = () => (
     <>
       <div className='bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden'>
-        {/* Debug panel: raw API and mapped stock (temporary) */}
-        {rawApiStock && (
-          <div className='p-4 border-b border-gray-200 bg-yellow-50 text-xs text-gray-700'>
-            <div className='font-medium mb-2'>Debug API response (raw):</div>
-            <pre className='whitespace-pre-wrap max-h-40 overflow-auto text-[11px]'>{JSON.stringify(rawApiStock, null, 2)}</pre>
-          </div>
-        )}
         {/* Mobile Card View */}
         <div className='block md:hidden divide-y divide-gray-200'>
           {stockData.length === 0 && !loadingStockData ? (
@@ -371,9 +382,8 @@ const AdminHospitals = () => {
               <div className='flex justify-between items-start mb-2'>
                 <span className='text-sm font-semibold text-gray-900'>{unit.type}</span>
                 <span
-                  className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                    unit.difference < 0 ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'
-                  }`}
+                  className={`px-2 py-1 text-xs font-semibold rounded-full ${unit.difference < 0 ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'
+                    }`}
                 >
                   {unit.difference >= 0 ? '+' : ''}
                   {unit.difference}
@@ -411,9 +421,8 @@ const AdminHospitals = () => {
                   <td className='px-4 lg:px-6 py-4 text-sm text-gray-900'>{unit.quantity}</td>
                   <td className='px-4 lg:px-6 py-4 text-sm text-gray-900'>{unit.requests}</td>
                   <td
-                    className={`px-4 lg:px-6 py-4 text-sm font-semibold ${
-                      unit.difference < 0 ? 'text-red-600' : 'text-green-600'
-                    }`}
+                    className={`px-4 lg:px-6 py-4 text-sm font-semibold ${unit.difference < 0 ? 'text-red-600' : 'text-green-600'
+                      }`}
                   >
                     {unit.difference >= 0 ? '+' : ''}
                     {unit.difference}
@@ -450,33 +459,39 @@ const AdminHospitals = () => {
         </button>
       </div>
       <div className='grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6'>
-        {filteredDoctors.map((doctor) => (
-          <div key={doctor.id} className='bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden'>
-            <div className='h-48 w-full bg-gray-100'>
-              {doctor.image ? (
-                <img src={doctor.image} alt={doctor.name} className='w-full h-full object-cover' />
-              ) : (
-                <div className='w-full h-full bg-gradient-to-br from-blue-200 to-blue-300 flex items-center justify-center'>
-                  <svg className='w-14 h-14 text-blue-600' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z' />
+        {loadingDoctors ? (
+          <div className='col-span-full py-12 text-center text-gray-500'>Loading doctors...</div>
+        ) : filteredDoctors.length === 0 ? (
+          <div className='col-span-full py-12 text-center text-gray-500'>No doctors found. Try a different search term.</div>
+        ) : (
+          filteredDoctors.map((doctor) => (
+            <div key={doctor.id} className='bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden'>
+              <div className='h-48 w-full bg-gray-100'>
+                {doctor.image ? (
+                  <img src={doctor.image} alt={doctor.name} className='w-full h-full object-cover' />
+                ) : (
+                  <div className='w-full h-full bg-gradient-to-br from-blue-200 to-blue-300 flex items-center justify-center'>
+                    <svg className='w-14 h-14 text-blue-600' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z' />
+                    </svg>
+                  </div>
+                )}
+              </div>
+              <div className='p-6 text-center'>
+                <h3 className='text-lg font-bold text-gray-900 mb-1'>{doctor.name}</h3>
+                <p className='text-sm text-gray-600 mb-4'>{doctor.email}</p>
+                <button className='w-full px-4 py-2 border border-gray-300 text-gray-800 rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center gap-2'>
+                  <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z' />
                   </svg>
-                </div>
-              )}
+                  Message
+                </button>
+              </div>
             </div>
-            <div className='p-6 text-center'>
-              <h3 className='text-lg font-bold text-gray-900 mb-1'>{doctor.name}</h3>
-              <p className='text-sm text-gray-600 mb-4'>{doctor.email}</p>
-              <button className='w-full px-4 py-2 border border-gray-300 text-gray-800 rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center gap-2'>
-                <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z' />
-                </svg>
-                Message
-              </button>
-            </div>
-          </div>
-        ))}
+          ))
+        )}
       </div>
-      {filteredDoctors.length === 0 && <p className='text-center py-12 text-gray-500'>No doctors found. Try a different search term.</p>}
+
     </>
   );
 
@@ -493,7 +508,7 @@ const AdminHospitals = () => {
               </button>
             </div>
 
-              <div className='flex gap-2 sm:gap-4 mb-6 overflow-x-auto'>
+            <div className='flex gap-2 sm:gap-4 mb-6 overflow-x-auto'>
               {(
                 [
                   { id: 'stock', label: 'Stock' },
@@ -504,9 +519,8 @@ const AdminHospitals = () => {
                   key={tab.id}
                   type='button'
                   onClick={() => setActiveTab(tab.id)}
-                  className={`px-3 sm:px-4 py-2 text-sm sm:text-base rounded-lg font-medium transition-colors whitespace-nowrap ${
-                    activeTab === tab.id ? 'bg-[#C50000] text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
+                  className={`px-3 sm:px-4 py-2 text-sm sm:text-base rounded-lg font-medium transition-colors whitespace-nowrap ${activeTab === tab.id ? 'bg-[#C50000] text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
                 >
                   {tab.label}
                 </button>

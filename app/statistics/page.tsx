@@ -12,7 +12,7 @@ type Stat = {
 const STATS: Stat[] = [
   { value: 35000, label: 'Lives saved', prefix: '+ ', suffix: '' },
   { value: 1200, label: 'Partnered hospitals', prefix: '+ ', suffix: '' },
-  { value: 10000, label: 'Successful donations', prefix: '', suffix: '' },
+  { value: 10000, label: 'Successful donations', prefix: '+', suffix: '' },
 ];
 
 export function Statistics(): JSX.Element {

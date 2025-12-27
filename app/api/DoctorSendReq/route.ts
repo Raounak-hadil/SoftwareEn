@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized: User is not a doctor" }, { status: 403 });
     }
 
-    const { quantity, urgency, blood_type, status, seen = false, email } = await request.json();
+    const { quantity, urgency, blood_type, status, seen = false, email, Hospital_id: reqHospitalId } = await request.json();
 
     if (!quantity || !urgency || !blood_type || !status || !email) {
       return NextResponse.json({ error: "All fields are required" }, { status: 400 });
@@ -32,7 +32,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Doctor profile not found" }, { status: 404 });
     }
 
-    const { id: doctor_id, Hospital_id } = doctorData;
+    const { id: doctor_id, Hospital_id: dbHospitalId } = doctorData;
+    const Hospital_id = dbHospitalId || reqHospitalId;
     const request_date = new Date().toISOString();
 
     const { data, error } = await supabase
@@ -45,7 +46,7 @@ export async function POST(request: NextRequest) {
           request_date,
           urgency,
           blood_type,
-          status,
+          status: 'Pending',
           seen,
         },
       ])

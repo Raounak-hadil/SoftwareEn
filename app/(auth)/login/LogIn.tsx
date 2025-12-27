@@ -1,16 +1,28 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import SignIn1 from "../register/SignIn1";
 import SignIn2 from "../register/SignIn2";
+import FancyAlert from "@/components/ui/FancyAlert";
 
 function LogIn() {
   const [isHospital, setIsHospital] = useState(true);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [errorMsg, setErrorMsg] = useState("");
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const type = searchParams.get("type");
+    if (type === "doctor") {
+      setIsHospital(false);
+    } else if (type === "hospital") {
+      setIsHospital(true);
+    }
+  }, [searchParams]);
 
   const handleToggle = (hospital: boolean) => setIsHospital(hospital);
 
@@ -20,23 +32,29 @@ function LogIn() {
         const res = await fetch('/api/doctorLogin', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: username })
+          body: JSON.stringify({ email: username, password })
         });
         const data = await res.json();
         if (data.success) {
-          alert('Doctor Logged in successfully: ' + data.doctor.name);
+          // alert('Doctor Logged in successfully: ' + data.doctor.name); 
           console.log('Token:', data.token);
           // Store token for subsequent requests
           if (typeof window !== 'undefined') {
             localStorage.setItem('token', data.token);
           }
-          router.push('/doctor-profile');
+
+          const redirectTo = searchParams.get("redirectTo");
+          if (redirectTo) {
+            router.push(redirectTo);
+          } else {
+            router.push('/doctor-profile');
+          }
         } else {
-          alert(data.error || 'Login failed');
+          setErrorMsg(data.error || 'Login failed');
         }
       } catch (e) {
         console.error(e);
-        alert('An error occurred during login');
+        setErrorMsg('An error occurred during login');
       }
     } else {
       console.log("Hospital login flow");
@@ -49,19 +67,27 @@ function LogIn() {
         const data = await res.json();
 
         if (data.success) {
-          alert('Hospital Logged in successfully');
+          // alert('Hospital Logged in successfully');
           console.log('Hospital Token:', data.token);
 
           if (typeof window !== 'undefined') {
             localStorage.setItem('hospital_token', data.token); // distinct key if needed, or just 'token'
           }
-          router.push('/hospital/stock');
+
+          const redirectTo = searchParams.get("redirectTo");
+          if (redirectTo) {
+            router.push(redirectTo);
+          } else if (data.role === 'admin') {
+            router.push('/admin-dashboard');
+          } else {
+            router.push('/hospital/stock');
+          }
         } else {
-          alert(data.error || 'Login failed');
+          setErrorMsg(data.error || 'Login failed');
         }
       } catch (e) {
         console.error(e);
-        alert('An error occurred during hospital login');
+        setErrorMsg('An error occurred during hospital login');
       }
     }
   };
@@ -139,7 +165,16 @@ function LogIn() {
         </div>
       </div>
 
+
       <div className="hidden md:flex md:w-1/2 md:flex-1"></div>
+
+      {errorMsg && (
+        <FancyAlert
+          message={errorMsg}
+          onClose={() => setErrorMsg("")}
+          type="error"
+        />
+      )}
     </div>
   );
 }

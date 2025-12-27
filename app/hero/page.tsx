@@ -26,10 +26,7 @@ export function Hero(): JSX.Element {
               Behind every donation is a heartbeat that keeps on living
             </p>
             <p className="text-sm sm:text-base text-gray-700 mb-6 sm:mb-8 leading-relaxed">
-              Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the
-              industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and
-              scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into
-              electronic typesetting, remaining essentially unchanged.
+              In the critical moments when lives hang in the balance, our platform bridges the gap between generous donors and hospitals in urgent need. We facilitate a seamless network where medical institutions can request vital blood supplies instantly, ensuring that every drop reaches its destination with speed and precision. Together, we are building a more resilient healthcare community where compassion meets innovation to save lives, one request at a time.
             </p>
             <Link href="/form" className="w-full sm:w-fit">
               <span className="inline-flex w-full sm:w-auto">

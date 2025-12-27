@@ -1,7 +1,7 @@
 'use client';
 
 import type { JSX } from 'react';
-import { useState, type ChangeEvent } from 'react';
+import { useState, useEffect, type ChangeEvent } from 'react';
 
 import AdminNavbar from '../../components/ui/AdminNavbar';
 
@@ -22,11 +22,46 @@ type ChartPoint = {
 
 const AdminDashboard = () => {
   const [selectedYear, setSelectedYear] = useState<string>('2025');
+  const [totalBloodUnits, setTotalBloodUnits] = useState<string>('Loading...');
+  const [connectedHospitals, setConnectedHospitals] = useState<string>('Loading...');
+  const [totalPending, setTotalPending] = useState<string>('Loading...');
+  const [chartData, setChartData] = useState<ChartPoint[]>([
+    { month: 'A+', value: 0 },
+    { month: 'A-', value: 0 },
+    { month: 'B+', value: 0 },
+    { month: 'B-', value: 0 },
+    { month: 'AB+', value: 0 },
+    { month: 'AB-', value: 0 },
+    { month: 'O+', value: 0 },
+    { month: 'O-', value: 0 },
+  ]);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const res = await fetch('/api/admin/stats');
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success && json.stats) {
+            setTotalBloodUnits(json.stats.total_blood_units?.toString() || '0');
+            setConnectedHospitals(json.stats.connected_hospitals?.toString() || '0');
+            setTotalPending(json.stats.total_pending?.toString() || '0');
+            if (json.stats.blood_distribution && json.stats.blood_distribution.length > 0) {
+              setChartData(json.stats.blood_distribution);
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch admin stats', error);
+      }
+    };
+    fetchStats();
+  }, []);
 
   const stats: StatCard[] = [
     {
       title: 'Total blood units',
-      value: '40,689',
+      value: totalBloodUnits,
       change: '+8.5%',
       changeText: 'Up from past month',
       icon: (
@@ -44,7 +79,7 @@ const AdminDashboard = () => {
     },
     {
       title: 'Connected hospitals',
-      value: '10,293',
+      value: connectedHospitals,
       change: '+1.3%',
       changeText: 'Up from past month',
       icon: (
@@ -62,7 +97,7 @@ const AdminDashboard = () => {
     },
     {
       title: 'Total Pending',
-      value: '2040',
+      value: totalPending,
       change: '+1.8%',
       changeText: 'Up from past month',
       icon: (
@@ -75,22 +110,10 @@ const AdminDashboard = () => {
     },
   ];
 
-  const chartData: ChartPoint[] = [
-    { month: '5k', value: 80 },
-    { month: '10k', value: 150 },
-    { month: '15k', value: 100 },
-    { month: '20k', value: 200 },
-    { month: '25k', value: 120 },
-    { month: '30k', value: 306 },
-    { month: '35k', value: 180 },
-    { month: '40k', value: 250 },
-    { month: '45k', value: 150 },
-    { month: '50k', value: 220 },
-    { month: '55k', value: 180 },
-    { month: '60k', value: 200 },
-  ];
+  // Removed hardcoded chartData as it is now a state variable
 
-  const maxValue = Math.max(...chartData.map((d) => d.value));
+  const maxValueRaw = Math.max(...chartData.map((d) => d.value));
+  const maxValue = maxValueRaw === 0 ? 1 : maxValueRaw;
 
   const generatePath = (): string => {
     const width = 700;
@@ -137,6 +160,8 @@ const AdminDashboard = () => {
     return path;
   };
 
+  const peakPoint = maxValueRaw > 0 ? chartData.find(d => d.value === maxValueRaw) : null;
+
   return (
     <>
       <AdminNavbar />
@@ -169,7 +194,7 @@ const AdminDashboard = () => {
             <div className='flex items-center justify-between mb-6'>
               <div className='flex items-center gap-2'>
                 <div className='w-1 h-6 bg-[#C50000] rounded-full' />
-                <h2 className='text-lg sm:text-xl font-bold text-gray-900'>Blood Units Over Time</h2>
+                <h2 className='text-lg sm:text-xl font-bold text-gray-900'>Blood Units by Type</h2>
               </div>
               <select
                 value={selectedYear}
@@ -201,7 +226,7 @@ const AdminDashboard = () => {
                 {chartData.map((point, index) => {
                   const x = 50 + (index / (chartData.length - 1)) * 700;
                   const y = 200 - (point.value / maxValue) * 160;
-                  const isPeak = point.value === 306;
+                  const isPeak = maxValueRaw > 0 && point.value === maxValueRaw;
 
                   return (
                     <g key={`${point.month}-${index}`}>

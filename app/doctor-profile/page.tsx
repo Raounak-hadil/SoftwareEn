@@ -9,7 +9,7 @@ import { Footer } from '@/components/ui/Footer';
 type RequestHistory = {
   id: string;
   date: string;
-  status: 'READY' | 'PROCESSING' | 'COMPLETED';
+  status: 'READY' | 'PROCESSING' | 'COMPLETED' | 'APPROVED';
 };
 
 type RequestRow = {
@@ -112,13 +112,13 @@ const DoctorProfilePage = (): JSX.Element => {
         }));
         setRequests(mappedRequests);
 
-        // Filter completed requests for history
+        // Filter requests for history - Now using 'Approved' as per user request
         const completedRequests: RequestHistory[] = requestsData.data
-          .filter((n: any) => n.status === 'Done')
+          .filter((n: any) => n.status === 'Approved')
           .map((n: any): RequestHistory => ({
             id: n.id?.toString() || 'N/A',
             date: n.request_date ? new Date(n.request_date).toLocaleDateString() : 'N/A',
-            status: 'COMPLETED'
+            status: 'APPROVED'
           }));
         setHistoryItems(completedRequests);
       } else {
@@ -157,8 +157,9 @@ const DoctorProfilePage = (): JSX.Element => {
         quantity: formState.quantity,
         urgency: formState.urgency,
         blood_type: formState.bloodGroup,
-        status: 'PENDING',
-        seen: false
+        status: 'Waiting',
+        seen: false,
+        Hospital_id: doctorData?.Hospital_id
       };
 
       const response = await fetch('/api/DoctorSendReq', {
@@ -352,6 +353,15 @@ const DoctorProfilePage = (): JSX.Element => {
                 <h3 className='text-base font-semibold text-gray-900'>Request Details</h3>
                 <form onSubmit={handleSubmit} className='space-y-3'>
                   <div>
+                    <label className='block text-xs text-gray-600 mb-1'>Hospital</label>
+                    <input
+                      type='text'
+                      value={doctorData?.hospitals?.hosname || 'Not Assigned'}
+                      readOnly
+                      className='w-full h-9 border border-gray-300 rounded-sm px-3 text-sm focus:outline-none bg-gray-100 text-gray-500 cursor-not-allowed'
+                    />
+                  </div>
+                  <div>
                     <label className='block text-xs text-gray-600 mb-1'>Email</label>
                     <input
                       type='text'
@@ -447,7 +457,7 @@ const DoctorProfilePage = (): JSX.Element => {
                   </button>
                 </div>
                 <div className='space-y-2'>
-                  {visibleHistory.length > 0 ? (
+                  {historyItems.length > 0 ? (
                     visibleHistory.map((item, idx) => (
                       <div key={`${item.id}-${idx}`} className='flex items-center justify-between text-xs py-1'>
                         <div className='text-gray-800'>{item.id}</div>
@@ -519,7 +529,7 @@ const DoctorProfilePage = (): JSX.Element => {
                         <td className='px-3 py-2 text-gray-800'>{row.quantity}</td>
                         <td className='px-3 py-2'>
                           <span
-                            className={`font-semibold ${row.status === 'READY'
+                            className={`font-semibold ${row.status === 'READY' || row.status === 'Approved'
                               ? 'text-green-600'
                               : row.status === 'PROCESSING'
                                 ? 'text-blue-600'

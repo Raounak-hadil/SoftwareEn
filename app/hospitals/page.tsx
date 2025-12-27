@@ -133,10 +133,7 @@ const Hospitals = (): JSX.Element => {
           <div className='w-1 h-8 sm:h-10 bg-[#C50000]' />
           <h2 className='text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-[#C50000]'>Our Hospitals</h2>
         </div>
-        {/* Debug banner: shows fetch status while diagnosing */}
-        <div className='mb-4 text-sm text-gray-600'>
-          {hospitalsLoading ? 'Loading hospitals...' : hospitalsError ? `Error: ${hospitalsError}` : `Hospitals: ${hospitalsList.length}`}
-        </div>
+      
 
         <div className='relative'>
           {canScrollLeft && (

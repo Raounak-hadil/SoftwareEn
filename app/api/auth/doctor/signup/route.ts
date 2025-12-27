@@ -8,13 +8,13 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     // 1. Extract hospitalIds (expecting an array of IDs)
-    const { 
-      first_name, 
-      last_name, 
-      email, 
-      phone_num, 
-      speciality, 
-      password, 
+    const {
+      first_name,
+      last_name,
+      email,
+      phone_num,
+      speciality,
+      password,
       hospitalIds // [1, 2, 5] example
     } = body;
 
@@ -41,7 +41,8 @@ export async function POST(req: Request) {
         last_name,
         email,
         phone_num,
-        speciality 
+        speciality,
+        Hospital_id: (hospitalIds && hospitalIds.length > 0) ? hospitalIds[0] : null
       })
       .select("id, first_name, last_name") // Select the specific fields you need, specially ID
       .single();
@@ -52,7 +53,7 @@ export async function POST(req: Request) {
 
     // 4. Insert Hospital Associations (The new part)
     if (hospitalIds && Array.isArray(hospitalIds) && hospitalIds.length > 0) {
-      
+
       // Prepare the array of objects for bulk insertion
       const hospitalMap = hospitalIds.map((hospId: string | number) => ({
         doctor_id: doctorData.id, // Use the ID returned from step 3
@@ -69,14 +70,14 @@ export async function POST(req: Request) {
         // regarding the user creation, or fail strictly.
         console.error("Error linking hospitals:", linkError);
         return NextResponse.json(
-            { error: "User created, but failed to link hospitals: " + linkError.message }, 
-            { status: 400 }
+          { error: "User created, but failed to link hospitals: " + linkError.message },
+          { status: 400 }
         );
       }
     }
 
     return NextResponse.json({ success: true, doctor: doctorData, user: authData.user });
-    
+
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
