@@ -1,7 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 
-export function Donors(): JSX.Element {
+export default function Donors(): JSX.Element {
   return (
     <section id='donors' className='bg-white py-16 md:py-24 w-full'>
       <div className='w-full px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-16'>
@@ -19,7 +19,6 @@ export function Donors(): JSX.Element {
               />
             </div>
           </div>
-
           <div className='order-1 md:order-2'>
             <h2 className='text-3xl sm:text-4xl lg:text-5xl font-bold text-[#C50000] mb-6'>
               Our Donors
@@ -38,5 +37,3 @@ export function Donors(): JSX.Element {
     </section>
   );
 }
-
-export default Donors;
