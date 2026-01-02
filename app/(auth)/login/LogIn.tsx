@@ -19,6 +19,7 @@ function LogIn() {
       try {
         const res = await fetch('/api/doctorLogin', {
           method: 'POST',
+          credentials: 'include',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email: username })
         });
@@ -43,6 +44,7 @@ function LogIn() {
       try {
         const res = await fetch('/api/auth/hospital/signin', {
           method: 'POST',
+          credentials: 'include',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email: username, password })
         });
@@ -118,9 +120,9 @@ function LogIn() {
             onChange={(e) => setPassword(e.target.value)}
           />
 
-          <span className="text-base text-red-600 cursor-pointer font-medium hover:underline">
+          <Link href="forgot_password" className="text-base text-red-600 cursor-pointer font-medium hover:underline">
             Forgot password?
-          </span>
+          </Link>
 
           <button
             type="button"

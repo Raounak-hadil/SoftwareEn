@@ -41,6 +41,7 @@ interface HospitalRequest {
   notes: string
   status: string
   hospital_from_details?: HospitalDetails // Joined data
+  hospital_to_details?: HospitalDetails // Joined data (for outgoing requests)
 }
 
 interface Donator {
@@ -63,11 +64,12 @@ interface DBDonator {
 }
 
 export default function RequestsPage() {
-  const [activeTab, setActiveTab] = useState<'requests' | 'forever-donators' | 'other-requests'>('requests')
+  const [activeTab, setActiveTab] = useState<'requests' | 'forever-donators' | 'other-requests' | 'my-requests'>('requests')
   
   // Data State
   const [doctorRequests, setDoctorRequests] = useState<DoctorRequest[]>([])
   const [hospitalRequests, setHospitalRequests] = useState<HospitalRequest[]>([])
+  const [outgoingRequests, setOutgoingRequests] = useState<HospitalRequest[]>([])
   const [foreverDonators, setForeverDonators] = useState<DBDonator[]>([])
   const [loading, setLoading] = useState(true)
   const [hospitals, setHospitals] = useState<{ id: number; hosname: string; city?: string }[]>([])
@@ -95,18 +97,18 @@ export default function RequestsPage() {
     setLoading(true)
     try {
       // Fetch Doctor Requests
-      const docRes = await fetch('/api/hospital/doctorsRequests/Requests')
+      const docRes = await fetch('/api/hospital/doctorsRequests/Requests', { credentials: 'include' })
       const docData = await docRes.json()
       if (docData.success) setDoctorRequests(docData.pending_requests)
 
       // Fetch Incoming Hospital Requests
-      const hospRes = await fetch('/api/hospital/hospitalRequests/incoming')
+      const hospRes = await fetch('/api/hospital/hospitalRequests/incoming', { credentials: 'include' })
       const hospData = await hospRes.json()
       if (hospData.success) setHospitalRequests(hospData.incoming_requests)
 
       // Fetch Donators
       // Linked to /app/api/hospital/Donnations/myDonors/route.ts
-      const donRes = await fetch('/api/hospital/Donnations/myDonors') 
+      const donRes = await fetch('/api/hospital/Donnations/myDonors', { credentials: 'include' }) 
       const donData = await donRes.json()
       if (donData.success) setForeverDonators(donData.donators)
 
@@ -114,6 +116,11 @@ export default function RequestsPage() {
       const hosRes = await fetch('/api/hospitals_list')
       const hosData = await hosRes.json()
       if (hosData?.hospitals && Array.isArray(hosData.hospitals)) setHospitals(hosData.hospitals)
+
+      // Fetch outgoing hospital requests (my requests)
+      const myRes = await fetch('/api/hospital/hospitalRequests/myRequests', { credentials: 'include' })
+      const myData = await myRes.json()
+      if (myData?.success) setOutgoingRequests(myData.outgoing_requests)
 
     } catch (error) {
       console.error("Failed to fetch requests data:", error)
@@ -138,6 +145,7 @@ export default function RequestsPage() {
     try {
       const res = await fetch('/api/hospital/doctorsRequests/Requests/update_status', {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ request_id: id, new_status: status })
       })
@@ -168,6 +176,7 @@ export default function RequestsPage() {
     try {
       const res = await fetch('/api/hospital/hospitalRequests/update_status', {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ request_id: id, new_status: status })
       })
@@ -187,6 +196,7 @@ export default function RequestsPage() {
     try {
       const res = await fetch('/api/hospital/hospitalRequests/requestForm', {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           hospital_to_id: parseInt(requestForm.hospital_to_id),
@@ -261,7 +271,16 @@ export default function RequestsPage() {
         >
           Incoming Hospital Requests
         </button>
-        
+        <button
+          className={`py-2.5 px-5 border-none rounded-lg text-sm font-semibold cursor-pointer transition-all duration-300 ${
+            activeTab === 'my-requests' 
+              ? 'bg-[#dc2626] text-white' 
+              : 'bg-white text-[#dc2626] border border-[#dc2626]'
+          }`}
+          onClick={() => setActiveTab('my-requests')}
+        >
+          My Requests
+        </button>
       </div>
 
       {loading && <div className="p-10 text-center text-gray-500">Loading requests...</div>}
@@ -386,7 +405,46 @@ export default function RequestsPage() {
         </div>
       )}
 
-     
+      {/* MY OUTGOING REQUESTS TABLE */}
+      {!loading && activeTab === 'my-requests' && (
+        <div className="bg-white rounded-lg overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.1)]">
+          <table className="w-full border-collapse">
+            <thead className="bg-[#f9fafb]">
+              <tr>
+                <th className="p-[15px] text-left font-semibold text-[#111827] text-sm uppercase border-b-2 border-[#e5e7eb]">Hospital To</th>
+                <th className="p-[15px] text-left font-semibold text-[#111827] text-sm uppercase border-b-2 border-[#e5e7eb]">City</th>
+                <th className="p-[15px] text-left font-semibold text-[#111827] text-sm uppercase border-b-2 border-[#e5e7eb]">Email</th>
+                <th className="p-[15px] text-left font-semibold text-[#111827] text-sm uppercase border-b-2 border-[#e5e7eb]">Blood Type</th>
+                <th className="p-[15px] text-left font-semibold text-[#111827] text-sm uppercase border-b-2 border-[#e5e7eb]">Priority</th>
+                <th className="p-[15px] text-left font-semibold text-[#111827] text-sm uppercase border-b-2 border-[#e5e7eb]">Units</th>
+                <th className="p-[15px] text-left font-semibold text-[#111827] text-sm uppercase border-b-2 border-[#e5e7eb]">Notes</th>
+                <th className="p-[15px] text-left font-semibold text-[#111827] text-sm uppercase border-b-2 border-[#e5e7eb]">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {outgoingRequests.length === 0 && <tr><td colSpan={8} className="p-4 text-center text-gray-500">No outgoing requests.</td></tr>}
+              {outgoingRequests.map((request) => (
+                <tr key={request.id} className="hover:bg-[#f9fafb]">
+                  <td className="p-[15px] border-b border-[#e5e7eb] text-[#111827] text-sm font-medium">
+                    {request.hospital_to_details?.hosname || `ID: ${request.hospital_to_id}`}
+                  </td>
+                  <td className="p-[15px] border-b border-[#e5e7eb] text-[#111827] text-sm">
+                    {request.hospital_to_details?.city || '-'}
+                  </td>
+                  <td className="p-[15px] border-b border-[#e5e7eb] text-[#111827] text-sm">{request.email}</td>
+                  <td className="p-[15px] border-b border-[#e5e7eb] text-[#111827] text-sm font-bold">{request.blood_type}</td>
+                  <td className="p-[15px] border-b border-[#e5e7eb] text-[#111827] text-sm">{request.priority}</td>
+                  <td className="p-[15px] border-b border-[#e5e7eb] text-[#111827] text-sm">{request.units_needed}</td>
+                  <td className="p-[15px] border-b border-[#e5e7eb] text-[#6b7280] text-xs max-w-[150px] truncate">{request.notes}</td>
+                  <td className="p-[15px] border-b border-[#e5e7eb] text-[#111827] text-sm">
+                    <span className={getStatusClass(request.status)}>{request.status}</span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       {/* REQUEST FORM MODAL (LINKED TO /api/hospital_request/route.ts) */}
       {showRequestModal && (

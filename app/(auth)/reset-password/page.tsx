@@ -4,13 +4,14 @@ import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import { createBrowserClient } from '@supabase/ssr'; // Import this
+import { useRouter } from 'next/navigation';
 
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { PasswordInput } from '@/components/ui/password-input';
 
-// Schema for password validation
 const formSchema = z
   .object({
     password: z
@@ -25,6 +26,8 @@ const formSchema = z
   });
 
 export default function ResetPasswordPreview() {
+  const router = useRouter();
+  
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -35,9 +38,31 @@ export default function ResetPasswordPreview() {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      // Assuming an async reset password function
-      console.log(values);
-      toast.success('Password reset successful. You can now log in with your new password.');
+      // 1. Initialize the Browser Client
+      // This client automatically has access to the cookies in your browser
+      const supabase = createBrowserClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      );
+
+      // 2. Call Supabase directly to update the user
+      const { error } = await supabase.auth.updateUser({
+        password: values.password
+      });
+
+      if (error) {
+        console.error('Supabase error:', error);
+        toast.error(error.message || 'Failed to reset the password.');
+        return;
+      }
+
+      // 3. Success!
+      toast.success('Password reset successful. Redirecting to login...');
+      
+      // Optional: Sign out afterwards or redirect straight to dashboard
+      // router.push('/dashboard'); 
+      router.push('/login');
+
     } catch (error) {
       console.error('Error resetting password', error);
       toast.error('Failed to reset the password. Please try again.');
@@ -55,7 +80,6 @@ export default function ResetPasswordPreview() {
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
               <div className="grid gap-4">
-                {/* New Password Field */}
                 <FormField
                   control={form.control}
                   name="password"
@@ -70,7 +94,6 @@ export default function ResetPasswordPreview() {
                   )}
                 />
 
-                {/* Confirm Password Field */}
                 <FormField
                   control={form.control}
                   name="confirmPassword"

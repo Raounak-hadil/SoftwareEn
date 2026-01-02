@@ -1,8 +1,15 @@
-export default function RegisterLayout({ children }: { children: React.ReactNode }) {
-  return <>{children}</>;
+import { Toaster } from "@/components/ui/sonner" // or wherever your sonner component is
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="en">
+      <body>
+        {children}
+        <Toaster /> {/* <--- This is required! */}
+      </body>
+    </html>
+  );
 }
-
-
 
 /*
 
