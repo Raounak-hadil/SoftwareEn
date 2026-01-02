@@ -50,8 +50,7 @@ const FAQ_ITEMS: FAQItem[] = Array.from({ length: 7 }, (_, index) => {
   return { id: index + 1, ...faqs[index] };
 });
 
-
-export function FAQ(): JSX.Element {
+export default function FAQ(): JSX.Element {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'success' | 'error' | null>(null);
@@ -224,5 +223,3 @@ export function FAQ(): JSX.Element {
     </section>
   );
 }
-
-export default FAQ;
