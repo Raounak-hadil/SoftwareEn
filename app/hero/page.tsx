@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-export function Hero(): JSX.Element {
+export default function Hero(): JSX.Element {
   return (
     <section id="home" className="relative overflow-hidden pt-20 w-full bg-white">
       <div className="w-full py-16 md:py-24 relative">
@@ -17,7 +17,6 @@ export function Hero(): JSX.Element {
               />
             </svg>
           </div>
-
           <div className="flex flex-col justify-center z-10 px-8 md:px-12 lg:px-16 py-12">
             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-[#C50000] mb-4 leading-tight italic">
               One Drop Can Save a Life
@@ -40,7 +39,6 @@ export function Hero(): JSX.Element {
             </Link>
           </div>
         </div>
-
         <div className="md:hidden -mx-4 -mt-8">
           <svg className="w-full h-64" viewBox="0 0 400 300" preserveAspectRatio="none">
             <path
@@ -53,5 +51,3 @@ export function Hero(): JSX.Element {
     </section>
   );
 }
-
-export default Hero;
