@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { POST as authHospitalPOST } from "app/api/hospital/signin/route.ts";
+import { POST as authHospitalPOST } from "../../auth/hospital/signin/route";
 
 export async function POST(req: Request) {
   // Delegate to the existing hospital signin handler under /api/auth/hospital/signin
