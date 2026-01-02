@@ -1,8 +1,7 @@
 import type { JSX } from 'react';
-
 import Image from 'next/image';
 
-export function Mission(): JSX.Element {
+export default function Mission(): JSX.Element {
   return (
     <section id='mission' className='bg-white py-16 md:py-24 w-full'>
       <div className='w-full px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-16'>
@@ -17,7 +16,6 @@ export function Mission(): JSX.Element {
               <strong>Safe Donations, Trusted Hospitals and Protected Data!</strong>
             </p>
           </div>
-
           <div className='flex justify-end order-1 md:order-2'>
             <div className='relative w-[340px] sm:w-[400px] h-[240px] sm:h-[280px]'>
               <div className='absolute top-0 right-0 w-full h-full bg-[#C50000]' />
@@ -36,5 +34,3 @@ export function Mission(): JSX.Element {
     </section>
   );
 }
-
-export default Mission;
