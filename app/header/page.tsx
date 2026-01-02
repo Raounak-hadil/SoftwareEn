@@ -1,7 +1,7 @@
 import type { JSX } from 'react';
 import Link from 'next/link';
 
-export function Header(): JSX.Element {
+export default function Header(): JSX.Element {
   return (
     <header className='bg-blood-red sticky top-0 z-50'>
       <nav className='max-w-[80rem] mx-auto px-4 sm:px-6 lg:px-8 py-4'>
@@ -27,5 +27,3 @@ export function Header(): JSX.Element {
     </header>
   );
 }
-
-export default Header;
