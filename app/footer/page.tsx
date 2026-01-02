@@ -1,6 +1,6 @@
 import Link from 'next/link';
 
-export function Footer(): JSX.Element {
+export default function Footer(): JSX.Element {
   return (
     <footer className='bg-[#C50000] text-white w-full'>
       <div className='w-full px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-16 py-6 border-b border-white/20'>
@@ -13,7 +13,6 @@ export function Footer(): JSX.Element {
               be a <span className='text-white'>HERO</span>
             </div>
           </Link>
-
           <div className='flex items-center gap-4'>
             <span className='text-sm'>Ready to get started?</span>
             <Link href="/login">
@@ -24,7 +23,6 @@ export function Footer(): JSX.Element {
           </div>
         </div>
       </div>
-
       <div className='w-full px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-16 py-4'>
         <div className='flex flex-col md:flex-row justify-between items-center gap-4'>
           <div className='flex gap-4 text-xs text-white'>
@@ -46,5 +44,3 @@ export function Footer(): JSX.Element {
     </footer>
   );
 }
-
-export default Footer;
