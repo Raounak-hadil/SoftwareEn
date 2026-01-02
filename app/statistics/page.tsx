@@ -15,7 +15,7 @@ const STATS: Stat[] = [
   { value: 10000, label: 'Successful donations', prefix: '+', suffix: '' },
 ];
 
-export function Statistics(): JSX.Element {
+export default function Statistics(): JSX.Element {
   const [activeIndex, setActiveIndex] = useState(1);
   const [displayValues, setDisplayValues] = useState<number[]>([0, 0, 0]);
   const animationRef = useRef<number | null>(null);
@@ -126,5 +126,3 @@ export function Statistics(): JSX.Element {
     </section>
   );
 }
-
-export default Statistics;
