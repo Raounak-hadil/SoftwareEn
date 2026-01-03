@@ -1,16 +1,32 @@
 import { NextResponse } from "next/server";
-import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs";
+import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
-    const supabase = createRouteHandlerClient({ cookies });
+    const cookieStore = await cookies();
+
+    const supabase = createServerClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        {
+            cookies: {
+                getAll() {
+                    return cookieStore.getAll();
+                },
+                setAll(cookiesToSet) {
+                    try {
+                        cookiesToSet.forEach(({ name, value, options }) =>
+                            cookieStore.set(name, value, options)
+                        );
+                    } catch {}
+                },
+            },
+        }
+    );
 
     try {
-        // Check for authentication (optional for now as per other admin endpoints, but good practice)
-        // const { data: { user } } = await supabase.auth.getUser();
-        // if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-        // Fetch quantity and type from all stock entries
         const { data, error } = await supabase
             .from("stock")
             .select("quantity, blood_type");
@@ -20,7 +36,6 @@ export async function GET() {
             throw error;
         }
 
-        // Calculate sum for total blood units and distribution by type
         const distributionMap: Record<string, number> = {};
         let totalUnits = 0;
 
@@ -31,23 +46,19 @@ export async function GET() {
             distributionMap[type] = (distributionMap[type] || 0) + qty;
         });
 
-        // Convert to ChartPoint format (label as "month" for compatibility)
         const distribution = Object.entries(distributionMap).map(([type, total]) => ({
             month: type,
             value: total
         })).sort((a, b) => a.month.localeCompare(b.month));
 
-        // Fetch count from hospitals_requests for "Connected hospitals"
         const { count: connectedHospitalsCount, error: reqError } = await supabase
             .from("hospitals_requests")
             .select("*", { count: 'exact', head: true });
 
         if (reqError) {
             console.error("Supabase error fetching hospitals_requests count:", reqError);
-            // We don't throw, just log and continue with 0 or potentially null
         }
 
-        // Fetch count from hospitals_requests for "Total Pending"
         const { count: pendingCount, error: pendingError } = await supabase
             .from("hospitals_requests")
             .select("*", { count: 'exact', head: true })

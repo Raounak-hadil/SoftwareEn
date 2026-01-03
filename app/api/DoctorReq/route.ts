@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+export const dynamic = 'force-dynamic';
+
 import { supabase } from '@/lib/supabaseClient';
 import { requireAuth } from '@/utils/auth';
 

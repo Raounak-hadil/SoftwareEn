@@ -1,5 +1,7 @@
 // /app/api/hospital_requests/outgoing/route.ts
 import { NextResponse } from "next/server";
+export const dynamic = 'force-dynamic';
+
 import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs";
 import { cookies } from "next/headers";
 
@@ -15,7 +17,7 @@ export async function GET() {
     .select("id")
     .eq("auth_id", user.id)
     .single();
-  
+
   if (hospitalError || !hospital) return NextResponse.json({ error: hospitalError?.message || "Hospital ID not found" }, { status: 400 });
 
   // 2. Fetch requests sent FROM this hospital
@@ -29,6 +31,6 @@ export async function GET() {
     .order('id', { ascending: false });
 
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
-  
+
   return NextResponse.json({ success: true, outgoing_requests: requests });
 }
