@@ -1,8 +1,30 @@
-import { getSupabase } from "@/lib/supabaseClient";
 import { NextResponse } from "next/server";
+import { createServerClient } from "@supabase/ssr";
+import { cookies } from "next/headers";
+
+export const dynamic = 'force-dynamic';
 
 async function deleteHospital(id: string) {
-  const supabase = getSupabase();
+  const cookieStore = await cookies();
+
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return cookieStore.getAll();
+        },
+        setAll(cookiesToSet) {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) =>
+              cookieStore.set(name, value, options)
+            );
+          } catch {}
+        },
+      },
+    }
+  );
 
   const { error } = await supabase
     .from("hospitals")
@@ -20,7 +42,7 @@ async function deleteHospital(id: string) {
 export async function DELETE(req: Request) {
   try {
     let id: string | null = null;
-
+    
     try {
       const body = await req.json();
       id = body?.id ?? null;
