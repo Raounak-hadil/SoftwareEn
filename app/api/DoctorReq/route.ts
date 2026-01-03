@@ -1,20 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 export const dynamic = 'force-dynamic';
 
-import { supabase } from '@/lib/supabaseClient';
+import { createServerClient } from "@supabase/ssr";
+import { cookies } from "next/headers";
 import { requireAuth } from '@/utils/auth';
 
-// Return doctor_requests filtered by the authenticated doctor's id
 export async function GET(request: NextRequest) {
   try {
-    // Authenticate the request using our signed token / session
     const authResult = await requireAuth(request);
     if (!authResult.user) {
       return authResult.response!;
     }
-
     const userEmail = authResult.user.email;
-
     if (!userEmail) {
       return NextResponse.json(
         { error: 'Authenticated user has no email' },
@@ -23,7 +20,26 @@ export async function GET(request: NextRequest) {
     }
     console.log('Authenticated user email:', userEmail);
 
-    // 1. Find doctor by email
+    const cookieStore = await cookies();
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll() {
+            return cookieStore.getAll();
+          },
+          setAll(cookiesToSet) {
+            try {
+              cookiesToSet.forEach(({ name, value, options }) =>
+                cookieStore.set(name, value, options)
+              );
+            } catch {}
+          },
+        },
+      }
+    );
+
     const { data: doctor, error: doctorError } = await supabase
       .from('doctors')
       .select('id')
@@ -34,7 +50,6 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Doctor not found' }, { status: 404 });
     }
 
-    // 2. Fetch requests for this doctor
     const { data, error } = await supabase
       .from('doctors_requests')
       .select('*')
