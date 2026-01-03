@@ -5,7 +5,6 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   console.log(`[Middleware] Path: ${pathname}`);
 
-  // Define public routes first
   const publicRoutes = [
     '/',
     '/auth/login',
@@ -46,7 +45,6 @@ export async function middleware(request: NextRequest) {
     },
   );
 
-  // Get user session
   const {
     data: { user },
     error
@@ -67,10 +65,6 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // REMOVED: Auto-redirect logic for authenticated users on login/register pages
-  // Now authenticated users can access /login and /register pages
-
-  // Admin route protection
   const adminRoutes = ['/admin-dashboard', '/admin-hospitals', '/admin-requests'];
   const isAdminRoute = adminRoutes.some(route => pathname === route || pathname.startsWith(route + '/'));
 
@@ -94,7 +88,6 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // If user is not authenticated and trying to access protected routes
   if (!user && !isPublicRoute) {
     console.log(`[Middleware] Unauthenticated access to protected route ${pathname}, redirecting to login`);
     const loginUrl = new URL('/auth/login', request.url);
