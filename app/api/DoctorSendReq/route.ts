@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabase } from "@/lib/supabaseClient";
+import { createServerClient } from "@supabase/ssr";
+import { cookies } from "next/headers";
 import { requireAuth } from "@/utils/auth";
 
 export async function POST(request: NextRequest) {
@@ -8,9 +9,7 @@ export async function POST(request: NextRequest) {
     if (!authResult.user) {
       return authResult.response!;
     }
-
     const user = authResult.user;
-
     if (user.role !== "doctor") {
       return NextResponse.json({ error: "Unauthorized: User is not a doctor" }, { status: 403 });
     }
@@ -21,7 +20,26 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "All fields are required" }, { status: 400 });
     }
 
-    // Fetch doctor's internal ID and Hospital_id
+    const cookieStore = await cookies();
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll() {
+            return cookieStore.getAll();
+          },
+          setAll(cookiesToSet) {
+            try {
+              cookiesToSet.forEach(({ name, value, options }) =>
+                cookieStore.set(name, value, options)
+              );
+            } catch {}
+          },
+        },
+      }
+    );
+
     const { data: doctorData, error: doctorError } = await supabase
       .from("doctors")
       .select("id, Hospital_id")
@@ -57,7 +75,6 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({ data, message: "Doctor request submitted successfully" }, { status: 200 });
-
   } catch (err) {
     console.error("POST doctors-requests error:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
