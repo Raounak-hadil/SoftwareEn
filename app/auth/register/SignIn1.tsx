@@ -22,7 +22,7 @@ function SignIn1({ page, setPage }: SignInProps) {
 
     const stayOnDoctor = () => {
         setIsHospital(false);
-        router.push("/register?type=doctor");
+        router.push("/auth/register?type=doctor");
     };
     return (
         <>
@@ -163,7 +163,7 @@ function SignIn1({ page, setPage }: SignInProps) {
 
                     <div className="fancy-auth-link">
                         <span>Already have an account?</span>
-                        <Link href="/login?type=hospital">
+                        <Link href="/auth/login?type=hospital">
                             <span className="link-text">Log in</span>
                         </Link>
                     </div>

@@ -67,7 +67,7 @@ export default function SignIn2() {
 
   const goToHospital = () => {
     setIsHospital(true);
-    router.push("/register?type=hospital");  // ✅ redirect to Hospital register
+    router.push("/auth/register?type=hospital");  // ✅ redirect to Hospital register
   };
 
   const stayOnDoctor = () => {
@@ -132,7 +132,7 @@ export default function SignIn2() {
           const json = await res.json();
           if (!res.ok) throw new Error(json?.error || 'Signup failed');
           // on success redirect to login - removing alert as requested
-          router.push('/login?type=doctor');
+          router.push('/auth/login?type=doctor');
         } catch (err: any) {
           setErrorMsg(err.message || 'Signup error');
         }
@@ -169,7 +169,7 @@ export default function SignIn2() {
 
         <div className="fancy-auth-link">
           <span>Already have an account?</span>
-          <Link href="/login?type=doctor">
+          <Link href="/auth/login?type=doctor">
             <span className="link-text">Log in</span>
           </Link>
         </div>

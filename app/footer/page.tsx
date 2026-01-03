@@ -15,7 +15,7 @@ export default function Footer(): JSX.Element {
           </Link>
           <div className='flex items-center gap-4'>
             <span className='text-sm'>Ready to get started?</span>
-            <Link href="/login">
+            <Link href="/auth/login">
               <button className='bg-white text-[#C50000] px-6 py-2 rounded font-medium hover:bg-gray-100 transition text-sm'>
                 Log in
               </button>

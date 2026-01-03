@@ -66,7 +66,7 @@ const DoctorProfilePage = (): JSX.Element => {
       const token = localStorage.getItem('token');
       if (!token) {
         console.log('No token found, redirecting to login');
-        router.push('/login');
+        router.push('/auth/login');
         return;
       }
 
@@ -79,7 +79,7 @@ const DoctorProfilePage = (): JSX.Element => {
 
       if (profileResponse.status === 401) {
         localStorage.removeItem('token');
-        router.push('/login');
+        router.push('/auth/login');
         return;
       }
 
@@ -148,7 +148,7 @@ const DoctorProfilePage = (): JSX.Element => {
     try {
       const token = localStorage.getItem('token');
       if (!token) {
-        router.push('/login');
+        router.push('/auth/login');
         return;
       }
 
@@ -203,7 +203,7 @@ const DoctorProfilePage = (): JSX.Element => {
     try {
       const token = localStorage.getItem('token');
       if (!token) {
-        router.push('/login');
+        router.push('/auth/login');
         return;
       }
 
@@ -249,7 +249,7 @@ const DoctorProfilePage = (): JSX.Element => {
     try {
       const token = localStorage.getItem('token');
       if (!token) {
-        router.push('/login');
+        router.push('/auth/login');
         return;
       }
 

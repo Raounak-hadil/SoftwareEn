@@ -7,11 +7,11 @@ export async function middleware(request: NextRequest) {
 
   // Define public routes first
   const publicRoutes = [
-    '/', 
-    '/login', 
-    '/register', 
-    '/forgot-password', 
-    '/reset-password', 
+    '/',
+    '/auth/login',
+    '/auth/register',
+    '/auth/forgot-password',
+    '/auth/reset-password',
     '/auth/callback',
     '/testing',
     '/testing2'
@@ -77,7 +77,7 @@ export async function middleware(request: NextRequest) {
   if (isAdminRoute) {
     if (!user) {
       console.log(`[Middleware] Anonymous attempt to access admin route: ${pathname}`);
-      const loginUrl = new URL('/login', request.url);
+      const loginUrl = new URL('/auth/login', request.url);
       loginUrl.searchParams.set('redirectTo', pathname);
       return NextResponse.redirect(loginUrl);
     }
@@ -97,7 +97,7 @@ export async function middleware(request: NextRequest) {
   // If user is not authenticated and trying to access protected routes
   if (!user && !isPublicRoute) {
     console.log(`[Middleware] Unauthenticated access to protected route ${pathname}, redirecting to login`);
-    const loginUrl = new URL('/login', request.url);
+    const loginUrl = new URL('/auth/login', request.url);
     loginUrl.searchParams.set('redirectTo', pathname);
     return NextResponse.redirect(loginUrl);
   }

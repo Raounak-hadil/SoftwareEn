@@ -158,7 +158,7 @@ function LogIn() {
 
           <div className="flex gap-2 text-base text-gray-200">
             <span>Don't have an account?</span>
-            <Link href={`/register?type=${isHospital ? "hospital" : "doctor"}`}>
+            <Link href={`/auth/register?type=${isHospital ? "hospital" : "doctor"}`}>
               <span className="text-red-600 cursor-pointer font-medium hover:underline">Sign up</span>
             </Link>
           </div>

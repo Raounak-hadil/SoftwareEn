@@ -112,7 +112,7 @@ export async function signup(formData: { name?: string; email: string; password:
 export async function signInWithGoogle() {
   const supabase = await createClient();
   // Default redirect to dashboard page after successful authentication
-  const origin = '/dashboard';
+  const origin = '/authenticated/dashboard';
 
   // Get the site URL from environment
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';

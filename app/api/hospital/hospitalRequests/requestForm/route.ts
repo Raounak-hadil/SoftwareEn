@@ -1,10 +1,9 @@
 // /app/api/hospital_request/route.ts
 import { NextResponse } from "next/server";
-import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs";
-import { cookies } from "next/headers";
+import { createClient } from '@/utils/supabase/server';
 
 export async function POST(req: Request) {
-  const supabase = createRouteHandlerClient({ cookies });
+  const supabase = await createClient();
 
   // 1. Authenticate and get the requesting hospital's user ID
   const { data: { user } } = await supabase.auth.getUser();
@@ -19,7 +18,7 @@ export async function POST(req: Request) {
     .select("id")
     .eq("auth_id", user.id)
     .single();
-  
+
   if (hospitalError || !hospital_from) return NextResponse.json({ error: hospitalError?.message || "Hospital ID not found" }, { status: 400 });
 
   // 3. Insert the new request

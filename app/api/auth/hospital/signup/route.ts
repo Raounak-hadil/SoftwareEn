@@ -1,9 +1,8 @@
 import { NextResponse } from "next/server";
-import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs";
-import { cookies } from "next/headers";
+import { createClient } from '@/utils/supabase/server';
 
 export async function POST(req: Request) {
-  const supabase = createRouteHandlerClient({ cookies });
+  const supabase = await createClient();
   const body = await req.json();
   const { email, password, hosname, phone_num, city, state, year_of_est, type, license_file } = body;
 
@@ -15,8 +14,8 @@ export async function POST(req: Request) {
   if (authError) {
     // More specific error message
     if (authError.message.includes("already registered")) {
-      return NextResponse.json({ 
-        error: "This email is already registered. Please use a different email or sign in." 
+      return NextResponse.json({
+        error: "This email is already registered. Please use a different email or sign in."
       }, { status: 400 });
     }
     return NextResponse.json({ error: authError.message }, { status: 400 });
@@ -24,8 +23,8 @@ export async function POST(req: Request) {
 
   // Check if user was actually created (not just returning existing user)
   if (!authData.user) {
-    return NextResponse.json({ 
-      error: "Signup failed. Please try again." 
+    return NextResponse.json({
+      error: "Signup failed. Please try again."
     }, { status: 400 });
   }
 
@@ -46,8 +45,8 @@ export async function POST(req: Request) {
   if (error) {
     // If hospital insert fails, we should ideally delete the auth user
     // but for now just return the error
-    return NextResponse.json({ 
-      error: `Account created but hospital registration failed: ${error.message}` 
+    return NextResponse.json({
+      error: `Account created but hospital registration failed: ${error.message}`
     }, { status: 500 });
   }
 

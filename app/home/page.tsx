@@ -14,12 +14,12 @@ import { default as Statistics } from '../statistics/page';
 import { useRouter } from "next/navigation";
 
 const HomePage = () => {
-    const [showLogin, setShowLogin] = useState(false);
-    const router = useRouter();
+  const [showLogin, setShowLogin] = useState(false);
+  const router = useRouter();
 
   return (
     <>
-      <Navbar onLoginClick={() => router.push("/login")} />
+      <Navbar onLoginClick={() => router.push("/auth/login")} />
       <main className='pt-16 transition-all duration-300'>
         <Hero />
         <Mission />

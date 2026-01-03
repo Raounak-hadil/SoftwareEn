@@ -1,23 +1,22 @@
 import { NextResponse } from "next/server";
-import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs";
-import { cookies } from "next/headers";
+import { createClient } from '@/utils/supabase/server';
 
 export async function PUT(req: Request) {
-  const supabase = createRouteHandlerClient({ cookies });
+  const supabase = await createClient();
 
   const body = await req.json();
   const { id, blood_type, quantity } = body;
-  
+
   console.log("Update stock request body:", body);
   console.log("Parsed values - id:", id, "blood_type:", blood_type, "quantity:", quantity);
-  
+
   // Validate inputs - allow id to be 0, but check it's not null/undefined
   // Allow quantity to be 0, but check it's not null/undefined
   if (id === null || id === undefined || !blood_type || blood_type.trim() === '' || quantity === null || quantity === undefined) {
     console.error("Validation failed - id:", id, "blood_type:", blood_type, "quantity:", quantity);
     return NextResponse.json({ error: "Missing inputs: id, blood_type, and quantity are required" }, { status: 400 });
   }
-  
+
   // Validate quantity is a number and non-negative
   const quantityNum = Number(quantity);
   if (isNaN(quantityNum) || quantityNum < 0) {

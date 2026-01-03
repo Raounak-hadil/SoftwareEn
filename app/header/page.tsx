@@ -17,7 +17,7 @@ export default function Header(): JSX.Element {
             ))}
           </div>
           <Link
-            href='/login'
+            href='/auth/login'
             className='border border-white text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-white hover:text-blood-red transition-colors'
           >
             Log in
