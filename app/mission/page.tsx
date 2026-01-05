@@ -1,5 +1,5 @@
 import type { JSX } from 'react';
-import Image from 'next/image';
+import Image from "next/image";
 
 export default function Mission(): JSX.Element {
   return (
