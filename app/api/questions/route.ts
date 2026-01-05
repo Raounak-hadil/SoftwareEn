@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabaseClient';
 
+// This endpoint is public – no auth required
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { fullName, phoneNum, Description } = body;
 
-    // Validate required fields
     if (!fullName || !phoneNum || !Description) {
       return NextResponse.json(
         { error: 'All fields are required' },
@@ -14,14 +14,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Insert data into Supabase
     const { data, error } = await supabase
       .from('ContactUs')
       .insert([{ fullName, phoneNum, Description }])
       .select();
 
     if (error) {
-      console.error('Supabase error:', error);
       return NextResponse.json(
         { error: error.message },
         { status: 400 }
